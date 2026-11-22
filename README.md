@@ -453,15 +453,34 @@ MySQL/MariaDB XAMPP
 
 ## 9. Konfigurasi Lokal
 
-Backend dijalankan dari folder `backend` dengan host yang dapat diakses perangkat lokal:
+Backend, database, dan web dijalankan dengan Docker Compose dari folder `backend`:
 
 ```text
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+docker compose up -d --build
+docker compose exec api python -m app.seed_demo
 ```
 
-Android emulator dapat memakai `10.0.2.2:8000` atau `adb reverse` dengan `127.0.0.1:8000`. Perangkat fisik harus memakai IP LAN laptop yang berada pada jaringan Wi-Fi sama.
+`seed_demo` menyiapkan akun demo dan produk surplus yang batas konsumsinya masih berlaku, sehingga katalog, keranjang, dan pembayaran QR langsung bisa diuji.
 
-URL pembayaran lokal harus berasal dari environment backend. Jangan memakai IP contoh, credential, token, atau API key di dokumen ini.
+Akun demo:
+
+```text
+pembeli@habisin.id / habisin123   (peran pembeli)
+penjual@habisin.id / habisin123   (peran penjual)
+```
+
+Android emulator memakai `adb reverse tcp:8000 tcp:8000` sehingga aplikasi mengakses `127.0.0.1:8000`. Perangkat fisik memakai IP LAN laptop yang berada pada jaringan Wi-Fi sama, dan IP tersebut harus didaftarkan ke backend agar isi QR pembayaran dapat dibuka HP:
+
+```text
+python update_host_ip.py            # QR berisi http://<IP-LAN>:8000/... (Wi-Fi rumah/kampus)
+python update_host_ip.py --tunnel   # QR berisi https://<acak>.trycloudflare.com/... (tanpa IP antar perangkat)
+```
+
+Skrip menulis `backend/hostnet/ip.txt` atau `backend/hostnet/base.txt` yang di-mount ke container API. Backend membacanya pada setiap permintaan QR, jadi tidak perlu restart. Status alamat yang sedang dipakai dapat dicek di `GET /health` pada field `qr_base`.
+
+Untuk demo tanpa mengatur IP sama sekali, jalankan `backend\start_demo.bat`: container dinyalakan, data demo disiapkan, URL tunnel ditulis, lalu `tunnel_watch.py` memantau URL tunnel dan memperbaruinya otomatis ketika container tunnel restart. Biarkan jendela tersebut terbuka selama demo. Syaratnya laptop dan HP terhubung internet (HP boleh memakai data seluler, tidak harus Wi-Fi yang sama).
+
+URL pembayaran lokal harus berasal dari environment atau berkas di atas. Jangan memakai IP contoh, credential, token, atau API key di dokumen ini.
 
 ---
 
@@ -590,3 +609,142 @@ app\build\outputs\apk\debug\app-debug.apk
 ## 15. Catatan Perubahan
 
 Dokumen ini menggambarkan kebutuhan dan implementasi project saat ini. Status `Diimplementasikan` berarti route atau UI tersedia di source. Status runtime hanya dianggap terverifikasi setelah flow dijalankan pada backend, database, dan perangkat Android yang aktif.
+
+---
+
+## 16. Pembayaran QR Simulasi
+
+Alur pembayaran yang berlaku saat ini:
+
+1. Pembeli menekan **Bayar dengan QR** pada layar Keranjang.
+2. `POST /keranjang/checkout` mengunci stok, membuat satu sesi checkout, dan menerbitkan `payment_code` acak (`secrets.token_urlsafe`) berlaku 60 detik.
+3. `GET /keranjang/checkout/{id}/qr` mengembalikan gambar QR dalam Base64 beserta `payment_code`, `total_harga`, dan `berlaku_sampai`. Isi QR adalah `<base>/pesanan/bayar/<payment_code>`.
+4. HP lain memindai QR dan membuka halaman bayar. Halaman menampilkan total, sisa waktu, dan tombol **Bayar sekarang**.
+5. `POST /pesanan/bayar/{payment_code}` menandai seluruh pesanan pada sesi `sudah_dibayar`, mengosongkan keranjang, dan menutup sesi. Aplikasi menutup dialog lewat polling status sesi.
+6. `POST /keranjang/checkout/{id}/refresh` menerbitkan kode baru dan membatalkan kode lama, sehingga QR lama tidak dapat dipakai lagi.
+
+Kode QR pada menu **Pesanan** (`GET /pesanan/{id}/qr`) memakai kode sesi checkout untuk pesanan hasil checkout, dan menerbitkan kode baru bila kode sebelumnya sudah kedaluwarsa.
+
+Penyebab umum QR tidak dapat dibuka di HP:
+
+| Gejala | Penyebab | Solusi |
+|---|---|---|
+| Scan tidak membuka apa pun | Isi QR memakai `127.0.0.1` atau IP internal Docker (`172.x`) | Jalankan `python update_host_ip.py` lalu cek `qr_base` di `/health` |
+| Scan membuka tetapi halaman kosong/error | IP LAN berubah karena DHCP | Jalankan ulang `python update_host_ip.py` |
+| Scan tetap gagal di Wi-Fi publik/kafe | Wi-Fi memblokir akses antar-perangkat | Jalankan `python update_host_ip.py --tunnel`, atau `start_demo.bat` |
+| Aplikasi tidak menampilkan dialog QR | Keranjang kosong atau stok tidak mencukupi | Pesan kesalahan sekarang tampil sebagai snackbar pada layar Keranjang/Pesanan |
+
+---
+
+## 17. Status Fitur terhadap Pedoman PAM 2026
+
+| Ketentuan Pedoman | Implementasi | Status |
+|---|---|---|
+| Login dan register | `POST /auth/register`, `POST /auth/login`, layar Masuk/Daftar Compose | Selesai |
+| Access token JWT dan refresh token | `security.py`, `POST /auth/refresh`, `AuthInterceptor` | Selesai |
+| Otorisasi berbasis peran | Peran `pembeli`/`penjual`, menu berbeda, endpoint menolak dengan 403 | Selesai |
+| Navigasi multi-halaman | Navigation Compose pada `HabisinNavHost` | Selesai |
+| State management MVVM | ViewModel + Repository + Retrofit untuk setiap fitur | Selesai |
+| Minimal 4 entitas saling terhubung | `users`, `products`, `cart_items`, `orders`, `checkout_sessions`, `ulasan`, `favorit` | Selesai |
+| Minimal 5 fitur CRUDS penuh | Produk, keranjang, pesanan, ulasan, favorit (create/read/update/delete/search) | Selesai |
+| Integrasi REST API dan parsing JSON | Retrofit + Gson pada seluruh layar | Selesai |
+| Database MySQL | MySQL 8.0 dalam container Docker | Selesai |
+| Penyimpanan berkas lokal | `LocalFileStore` menyimpan dan membaca struk pesanan, sekaligus disalin ke tabel `struk` di MySQL | Selesai |
+| UI hanya Jetpack Compose | Seluruh layar Compose Material 3 dengan tema Habisin | Selesai |
+| README berisi status fitur dan cara menjalankan | Dokumen ini, bagian 9, 11, 16, dan 17 | Selesai |
+
+---
+
+## 18. Struk Pembayaran
+
+Struk disimpan pada dua tempat agar daftar selalu konsisten dan tetap bisa dibaca tanpa jaringan:
+
+1. **MySQL** — tabel `struk` (`user_id`, `order_id`, `nama_berkas`, `isi`, `total_harga`, `dibuat_pada`). Isi struk dibuat di backend dari data pesanan, sehingga formatnya seragam.
+2. **Penyimpanan perangkat** — salinan berkas `struk-<id>.txt` pada `filesDir/struk` melalui `LocalFileStore`.
+
+Endpoint:
+
+```text
+POST   /struk              { "order_id": 66 }  -> simpan/perbarui struk (upsert per pesanan)
+GET    /struk?q=struk      -> daftar struk milik pengguna
+GET    /struk/{id}         -> detail beserta isi struk
+DELETE /struk/{id}         -> hapus struk (server dan berkas lokal di aplikasi)
+```
+
+Layar **Struk Tersimpan** membaca daftar dari `GET /struk` dan menggabungkannya dengan berkas lokal yang belum tersinkron. Berkas yang hanya ada di perangkat diberi penanda `hanya di perangkat`, sehingga daftar tidak pernah tampak kosong padahal struk sudah tersimpan.
+
+---
+
+## 19. Matriks CRUDS Fitur
+
+Bukti pemenuhan syarat "minimal 5 fitur dengan CRUDS penuh" pada pedoman.
+
+| Fitur | Create | Read | Update | Delete | Search |
+|---|---|---|---|---|---|
+| Produk | `POST /produk` | `GET /produk`, `GET /produk/{id}` | `PUT /produk/{id}` | `DELETE /produk/{id}` | `?q=`, `?jenis_makanan=`, `?sort=` |
+| Keranjang | `POST /keranjang` | `GET /keranjang` | `PUT /keranjang/{id}` | `DELETE /keranjang/{id}` | `?q=` |
+| Ulasan | `POST /ulasan/{order_id}` | `GET /ulasan`, `GET /ulasan/saya` | `PUT /ulasan/{id}` | `DELETE /ulasan/{id}` | `?q=`, `?rating=`, `?product_id=` |
+| Favorit | `POST /favorit/{product_id}` | `GET /favorit` | `PUT /favorit/{id}` (catatan) | `DELETE /favorit/{id}` | `?q=` |
+| Struk | `POST /struk` | `GET /struk`, `GET /struk/{id}` | `POST /struk` (upsert per pesanan) | `DELETE /struk/{id}` | `?q=` |
+| Pesanan | `POST /pesanan` | `GET /pesanan/saya`, `GET /pesanan/semua` | `PUT /pesanan/{id}`, `PATCH /pesanan/{id}/status` | `POST /pesanan/{id}/batal` (status, bukan hapus — SRS REQ-4) | `?q=`, `?status=` |
+
+Lima fitur pertama memenuhi CRUDS penuh; pesanan sengaja tidak menghapus baris karena SRS 3.7 mewajibkan riwayat tetap utuh saat dibatalkan.
+
+## 20. Entitas Basis Data
+
+| Tabel | Relasi |
+|---|---|
+| `users` | induk untuk `products`, `cart_items`, `orders`, `ulasan`, `favorit`, `struk`, `refresh_tokens` |
+| `products` | milik satu `users` (penjual); dirujuk `cart_items`, `orders`, `ulasan`, `favorit` |
+| `cart_items` | satu baris per produk per pembeli |
+| `orders` | milik pembeli, merujuk produk, opsional ke `checkout_sessions` |
+| `checkout_sessions` | satu sesi pembayaran untuk banyak `orders` (kode QR acak 60 detik) |
+| `ulasan` | satu ulasan per pesanan selesai |
+| `favorit` | produk yang ditandai pembeli + catatan pribadi |
+| `struk` | salinan struk pembayaran yang juga disimpan sebagai berkas di perangkat |
+| `refresh_tokens` | token penyegaran sesi |
+
+## 21. Progress Mingguan
+
+Kewajiban pedoman: minimal satu progress per minggu yang dicantumkan di README.
+
+Status repo saat ini: **2 commit baru** (tahap setup). Fitur aplikasi sudah berjalan di mesin lokal dan akan di-commit bertahap, satu kelompok per minggu, agar riwayat commit mencerminkan proses pengerjaan.
+
+### 21.1 Progress yang sudah di-commit
+
+| Minggu | Tanggal | Progress | Commit |
+|---|---|---|---|
+| 1 | 22 Nov 2026 | `.gitignore` untuk data lokal (MySQL, `.env`, log, tunnel) | `f07d1e7` |
+| 1 | 22 Nov 2026 | Konfigurasi Gradle, wrapper, manifest, `keepRules`, `proguard` | `c322a05` |
+
+### 21.2 Rencana commit berikutnya
+
+| # | Kelompok commit | Status |
+|---|---|---|
+| 3 | Tema: token warna, tipografi, `dimens.xml`, `strings.xml`, aset launcher | belum |
+| 4 | Klien REST API, model, sesi, util format | belum |
+| 5 | Komponen reusable: tombol, input, kartu, ikon | belum |
+| 6 | Data contoh produk, toko, pesanan, ulasan, struk | belum |
+| 7 | Navigasi Compose bertipe | belum |
+| 8 | Endpoint klien produk, toko, laporan | belum |
+| 9 | ViewModel autentikasi dan beranda | belum |
+| 10 | ViewModel keranjang dan pesanan | belum |
+| 11 | ViewModel favorit, ulasan, struk | belum |
+| 12 | ViewModel penjual, toko, Habisin AI | belum |
+| 13 | Layar masuk dan buat akun | belum |
+| 14 | Layar beranda | belum |
+| 15 | Layar keranjang dan pembayaran QR | belum |
+| 16 | Layar pesanan dan struk tersimpan | belum |
+| 17 | Layar favorit, ulasan, daftar toko, detail toko | belum |
+| 18 | Layar profil | belum |
+| 19 | Dashboard penjual dan Habisin AI | belum |
+| 20 | Unit test dan instrumented test | belum |
+| 21 | Backend: konfigurasi, Docker, skema basis data | belum |
+| 22 | Backend: autentikasi JWT dan produk | belum |
+| 23 | Backend: keranjang dan checkout QR | belum |
+| 24 | Backend: pesanan dan pembayaran | belum |
+| 25 | Backend: ulasan, favorit, laporan, AI, struk | belum |
+| 26 | Backend: seed demo dan skrip operasional | belum |
+| 27 | Klien web pembayaran | belum |
+| 28 | README: SRS, matriks CRUDS, progress | belum |
+
