@@ -9,7 +9,8 @@ Aplikasi Android (Jetpack Compose) + REST API FastAPI + MySQL 8.0 untuk menjual 
 | Program studi | Teknologi Informasi, Universitas Muhammadiyah Yogyakarta |
 | Mata kuliah | Pengembangan Aplikasi Mobile 2026 |
 | Dokumen acuan | `SRS_HABISIN_20240140003.pdf` (SRS-HABISIN-20240140003-v1.0, 22 November 2026) |
-| Repositori | `MUHAMADRAFLIPRATAMA/0004-Habisin` |
+| Repositori mobile | `MUHAMADRAFLIPRATAMA/0003-Habisin` |
+| Repositori API | `MUHAMADRAFLIPRATAMA/0003_API_Habisin` |
 | URL publik backend | `https://habisin.raflipratama.my.id` |
 
 README ini disusun mengikuti struktur SRS: setiap bab merujuk nomor bab SRS yang dijawabnya, sehingga kesesuaian implementasi dapat diperiksa butir per butir.
@@ -92,13 +93,7 @@ Habisin/
 │   │   └── util/        # Format, ImageCache, UiText
 │   └── viewmodel/       # 10 ViewModel
 ├── app/src/main/res/values/    # dimens.xml (94 token), strings.xml (334 string), colors.xml
-├── backend/
-│   ├── app/             # config, database, models, schemas, security, main, seed_demo
-│   ├── app/routers/     # auth, products, cart, orders, social, reports, ai, struk
-│   ├── sql/             # create_database.sql
-│   ├── cloudflared/     # config.yml + kredensial tunnel (tidak di-commit)
-│   └── docker-compose.yml
-└── web/                 # index.html, app.js, styles.css
+└── (backend & web ada di repositori terpisah `0003_API_Habisin`)
 ```
 
 ## 6. Model Data (SRS Appendix B.2, SRS 6)
@@ -433,6 +428,61 @@ Sisa pekerjaan di-commit bertahap satu kelompok per commit (bukan sekaligus), ag
 | Sumber teks & ukuran | `strings.xml` 334 string, `dimens.xml` 94 token |
 | Alur pembayaran QR | kode acak 60 detik, auto-terbit ulang saat kedaluwarsa, halaman bayar 200 lewat domain |
 | Rahasia di repositori | tidak ada `.env`, `.venv`, data MySQL, kredensial tunnel |
+
+
+### 15.4 Progress Pertemuan 9–16
+
+| Pertemuan | Fokus | Hasil |
+|---|---|---|
+| 9 | Fondasi proyek | Gradle, manifest, tema Compose, struktur paket, backend Docker Compose + MySQL |
+| 10 | Autentikasi & otorisasi | layar Masuk/Daftar, penyimpanan token, interceptor Bearer + refresh, menu per peran |
+| 11 | Katalog & produk | Beranda, pencarian, chip jenis makanan, kartu produk, detail produk, CRUDS produk penjual |
+| 12 | Keranjang | layar Keranjang, ubah jumlah, hapus item, ringkasan total dari server |
+| 13 | Checkout & QR | dialog QR dengan hitung mundur 60 detik, QR baru, pemantauan status sesi |
+| 14 | Pesanan & struk | riwayat pesanan, pelacak status, simpan struk ke penyimpanan lokal + tabel `struk` |
+| 15 | Ulasan, favorit, laporan | Ulasan Saya, Favorit + catatan, daftar/detail toko, dashboard penjual |
+| 16 | AI, desain akhir, publikasi | Habisin AI, audit tanpa hardcode (`dimens.xml` 94 token, `strings.xml` 334 string), URL publik permanen, pemisahan repo |
+
+### 15.5 Progress Mingguan (Weekly Progress)
+
+Bagian ini mencatat pekerjaan per minggu beserta commit yang mewakilinya, sehingga dosen dapat menelusuri progres langsung dari riwayat Git.
+
+#### Minggu 1 (8 - 9 November 2026)
+
+- [x] Setup proyek Android Studio dan `.gitignore` artefak build (`a708c5e`)
+- [x] `MainActivity` dan kerangka navigasi aplikasi (`651cde8`)
+
+#### Minggu 2 (15 November 2026)
+
+- [x] Dokumen SRS proyek Habisin (`4dff359`)
+- [x] `HabisinNavHost` dan definisi rute navigasi (`abe4817`)
+
+#### Minggu 3 (22 November 2026)
+
+- [x] `.gitignore` data lokal, log, dan berkas kredensial (`f07d1e7`)
+- [x] Konfigurasi Gradle, wrapper, manifest, `keepRules`, `proguard` (`c322a05`)
+- [x] README konfigurasi lokal dan akun demo (`1edd78b`)
+
+#### Minggu 4 (23 November 2026)
+
+- [x] README konfigurasi basis data dan tunnel permanen (`2237555`)
+- [x] README ditulis ulang mengikuti struktur SRS v1.0 (`f2f86a1`)
+- [x] README riwayat commit dan rencana commit bertahap (`335ef91`)
+
+#### Minggu 5 (24 November 2026) - dalam proses commit
+
+Pekerjaan berikut sudah selesai di mesin pengembang dan sedang di-commit bertahap satu per satu.
+
+- [ ] Tema: token warna, tipografi, `dimens.xml` (94 token), `strings.xml` (334 string), aset launcher
+- [ ] Lapisan data: model produk, repository, klien Retrofit, interceptor JWT, penanganan galat
+- [ ] API klien per fitur: auth, produk, toko, laporan, keranjang, pesanan, sosial, struk, AI
+- [ ] Penyimpanan sesi, berkas struk lokal, util format/teks/cache gambar
+- [ ] Komponen reusable: tombol, input, kartu, kartu produk, ikon
+- [ ] Navigasi bertipe (`Screen`, `Routes`, `HabisinNavHost`)
+- [ ] 10 ViewModel: auth, beranda, keranjang, pesanan, sosial, ulasan, struk, toko, penjual, AI
+- [ ] Layar pembeli: masuk/daftar, beranda, keranjang + dialog QR, pesanan, struk, favorit, ulasan, toko, profil
+- [ ] Layar penjual dan Habisin AI
+- [ ] Unit test dan instrumented test
 
 ## 16. Lisensi dan Atribusi
 
