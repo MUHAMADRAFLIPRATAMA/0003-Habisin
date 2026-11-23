@@ -1,782 +1,384 @@
-# Software Requirements Specification (SRS)
 # Habisin — Marketplace Makanan Surplus
 
-**Versi:** 1.0  
-**Tanggal:** 15 November 2026  
-**Status:** Draft berdasarkan implementasi project saat ini  
-**Platform:** Android, FastAPI, MySQL/MariaDB XAMPP
+Aplikasi Android (Jetpack Compose) + REST API FastAPI + MySQL 8.0 untuk menjual makanan surplus sebelum melewati batas konsumsi.
 
----
-
-## 1. Ringkasan
-
-Habisin adalah aplikasi marketplace makanan surplus. Penjual dapat menawarkan makanan yang masih layak konsumsi dengan harga diskon. Pembeli dapat mencari produk, menyimpan favorit, memasukkan produk ke keranjang, melakukan checkout multi-produk, membayar melalui QR lokal simulasi, memantau pesanan, dan memberi ulasan.
-
-Project terdiri dari:
-
-- Android native dengan Jetpack Compose dan MVVM.
-- Backend REST API dengan FastAPI.
-- Database MySQL/MariaDB melalui Docker.
-- Web pembayaran lokal untuk QR simulasi.
-- Fitur AI melalui backend.
-
-GitHub dan pengelolaan commit tidak termasuk scope dokumen ini.
-
----
-
-## 2. Tujuan Sistem
-
-1. Mengurangi pemborosan makanan melalui penjualan makanan surplus.
-2. Membantu pembeli memperoleh makanan dengan harga lebih rendah.
-3. Memberi penjual sarana mengelola produk dan pesanan.
-4. Menyediakan checkout multi-produk dengan stok yang konsisten.
-5. Menyediakan pembayaran lokal simulasi yang aman untuk pengembangan.
-6. Menyediakan bantuan AI berbasis data produk dan penjualan.
-
----
-
-## 3. Ruang Lingkup
-
-### 3.1 Termasuk
-
-- Registrasi, login, refresh token, dan informasi akun.
-- Peran pembeli dan penjual.
-- Katalog produk.
-- CRUD produk penjual.
-- Upload gambar produk.
-- Pencarian dan pengurutan produk.
-- Daftar toko dan detail toko.
-- Favorit dan ulasan.
-- Keranjang dengan CRUD.
-- Checkout multi-produk.
-- QR pembayaran lokal simulasi.
-- Sinkronisasi status pembayaran dan riwayat pesanan.
-- Pembatalan dan pembaruan status pesanan.
-- Ekspor pesanan CSV.
-- Fitur AI pembeli dan penjual.
-- Profil dan penyimpanan sesi Android.
-
-### 3.2 Tidak termasuk
-
-- Pembayaran bank, QRIS, e-wallet, atau payment gateway nyata.
-- Pengiriman atau kurir eksternal.
-- Notifikasi push produksi.
-- Panel admin terpisah.
-- Deployment cloud produksi.
-- Pengelolaan GitHub atau commit.
-
----
-
-## 4. Aktor Sistem
-
-| Aktor | Deskripsi |
+| Item | Keterangan |
 |---|---|
-| Pengunjung | Pengguna yang belum login dan dapat melihat halaman autentikasi/katalog sesuai aturan API. |
-| Pembeli | Pengguna yang mencari produk, memakai keranjang, checkout, membayar, melihat pesanan, favorit, dan ulasan. |
-| Penjual | Pengguna yang mengelola produk miliknya, melihat pesanan toko, mengubah status pesanan, dan memakai AI penjual. |
-| Backend | Layanan FastAPI yang memvalidasi autentikasi, otorisasi, stok, transaksi, dan data bisnis. |
-| Database | MySQL/MariaDB yang menyimpan akun, produk, pesanan, pembayaran, keranjang, favorit, ulasan, dan data terkait. |
+| Nama proyek | Habisin: Marketplace Makanan Surplus |
+| Penyusun | Muhamad Rafli Pratama — NIM 20240140003 — Kelas A |
+| Program studi | Teknologi Informasi, Universitas Muhammadiyah Yogyakarta |
+| Mata kuliah | Pengembangan Aplikasi Mobile 2026 |
+| Dokumen acuan | `SRS_HABISIN_20240140003.pdf` (SRS-HABISIN-20240140003-v1.0, 22 November 2026) |
+| Repositori | `MUHAMADRAFLIPRATAMA/0004-Habisin` |
+| URL publik backend | `https://habisin.raflipratama.my.id` |
+
+README ini disusun mengikuti struktur SRS: setiap bab merujuk nomor bab SRS yang dijawabnya, sehingga kesesuaian implementasi dapat diperiksa butir per butir.
 
 ---
 
-## 5. Kebutuhan Fungsional
+## 1. Ringkasan Produk (SRS 1.4)
 
-### FR-01 Autentikasi dan akun
+Habisin membantu penjual usaha mikro mengurangi kerugian akibat makanan tidak terjual, sekaligus memberi pembeli akses makanan berkualitas dengan harga lebih rendah. Setiap produk menampilkan harga normal, harga diskon, sisa stok, dan **batas konsumsi**, sehingga pembeli dapat memutuskan sebelum produk tidak layak dimakan.
 
-- Sistem harus menyediakan registrasi akun.
-- Sistem harus menolak email yang sudah terdaftar.
-- Sistem harus menyediakan login dengan email dan password.
-- Sistem harus menerbitkan access token dan refresh token setelah autentikasi berhasil.
-- Sistem harus menyediakan refresh token.
-- Sistem harus menyediakan endpoint akun aktif.
-- Sistem harus menyimpan token secara lokal di Android setelah login berhasil.
-- Sistem harus menghapus sesi lokal saat logout.
-- Sistem harus membedakan peran `pembeli` dan `penjual`.
-- Backend harus menjadi sumber kebenaran untuk autentikasi dan peran.
+Tujuan produk:
 
-Endpoint utama:
+1. Menyediakan kanal penjualan cepat bagi usaha mikro dengan makanan berlebih.
+2. Menekan pemborosan pangan dengan menjual produk sebelum batas konsumsi.
+3. Memberi pengalaman transaksi yang aman melalui JWT, otorisasi berbasis peran, dan pencatatan pesanan yang konsisten.
+4. Menyediakan data penjualan bagi penjual melalui laporan dan ringkasan.
 
-```text
-POST /auth/register
-POST /auth/login
-GET  /auth/me
-POST /auth/refresh
+Di luar ruang lingkup versi 1.0: pengiriman makanan, payment gateway/QRIS nyata, notifikasi push, pelacakan lokasi real-time, dan aplikasi iOS. Pembayaran berupa **simulasi QR lokal berlaku 60 detik**.
+
+## 2. Fitur (SRS 2.2)
+
+| # | Fitur | Prioritas | Status |
+|---|---|---|---|
+| 1 | Registrasi dan login (access token JWT + refresh token) | High | selesai |
+| 2 | Otorisasi berbasis peran (pembeli, penjual) | High | selesai |
+| 3 | Katalog produk: pencarian, filter jenis, harga diskon, stok, batas konsumsi | High | selesai |
+| 4 | Pengelolaan produk oleh penjual (CRUDS + unggah gambar) | High | selesai |
+| 5 | Keranjang belanja tersimpan di basis data (CRUDS) | High | selesai |
+| 6 | Checkout atomik multi-produk + QR simulasi 60 detik | High | selesai |
+| 7 | Riwayat pesanan dengan status pembayaran tersinkronisasi | High | selesai |
+| 8 | Ulasan produk (CRUDS + filter + kepemilikan) | Medium | selesai |
+| 9 | Favorit produk dengan catatan pribadi (CRUDS) | Medium | selesai |
+| 10 | Dashboard dan laporan penjualan (termasuk ekspor CSV) | Medium | selesai |
+| 11 | Habisin AI: rekomendasi, saran harga, penyusun deskripsi | Medium | selesai |
+| 12 | Penyimpanan struk pembayaran di perangkat | Low | selesai |
+
+## 3. Aktor dan Hak Akses (SRS 2.3)
+
+| Aktor | Menu | Batasan |
+|---|---|---|
+| Pembeli | Beranda, Favorit, Keranjang, Pesanan, Profil | hanya data miliknya sendiri |
+| Penjual | menu pembeli + Dashboard Penjual, Produk Saya | hanya produk dan pesanan miliknya |
+| Penguji/dosen | — | memverifikasi kesesuaian implementasi dengan SRS |
+
+Pembatasan diterapkan dua lapis: antarmuka menyembunyikan menu yang tidak sesuai peran, dan backend menolak permintaan tidak sah dengan **403** sehingga tidak dapat dilewati dengan memanggil API langsung.
+
+## 4. Arsitektur dan Teknologi (SRS 2.1, 2.4, 2.5)
+
+```
+Aplikasi Android (Compose, ViewModel, Repository, Retrofit)
+        │  JSON + Bearer token
+        ▼
+Nginx (web, port 80)  ──proxy /api dan path API──►  FastAPI (api, port 8000)
+        │                                                  │ SQLAlchemy 2.x
+        │                                                  ▼
+   Cloudflare Tunnel (habisin.raflipratama.my.id)      MySQL 8.0 (db)
 ```
 
-### FR-02 Katalog produk
-
-- Pembeli dapat melihat produk aktif.
-- Sistem harus dapat mencari produk.
-- Sistem harus dapat memfilter jenis makanan.
-- Sistem harus dapat mengurutkan produk.
-- Produk dengan stok habis tidak ditampilkan di katalog pembeli.
-- Data produk harus berasal dari backend, bukan data demo hardcode.
-- Informasi produk minimal mencakup nama, deskripsi, harga normal, harga diskon, stok, jenis makanan, batas konsumsi, cara penyimpanan, gambar, dan nama penjual jika tersedia.
-
-Endpoint utama:
-
-```text
-GET /produk
-GET /produk/{product_id}
-GET /produk/penjual
-```
-
-### FR-03 Manajemen produk penjual
-
-- Penjual dapat membuat produk.
-- Penjual dapat melihat produk miliknya.
-- Penjual dapat mengubah produk miliknya.
-- Penjual dapat menghapus atau menonaktifkan produk sesuai aturan riwayat pesanan.
-- Penjual dapat mengunggah gambar produk.
-- Backend harus memvalidasi kepemilikan produk.
-- Backend harus memvalidasi harga, stok, tanggal konsumsi, dan data wajib.
-
-Endpoint utama:
-
-```text
-POST   /produk
-PUT    /produk/{product_id}
-DELETE /produk/{product_id}
-POST   /produk/{product_id}/gambar
-```
-
-### FR-04 Toko
-
-- Pembeli dapat melihat daftar toko.
-- Pembeli dapat membuka detail toko berdasarkan ID stabil.
-- Detail toko menampilkan profil toko dan produk yang tersedia.
-- Toko tanpa produk aktif tidak ditampilkan pada menu pembeli.
-
-Endpoint utama:
-
-```text
-GET /toko
-GET /toko/{seller_id}
-```
-
-### FR-05 Favorit
-
-- Pembeli dapat melihat daftar favorit.
-- Pembeli dapat mencari favorit.
-- Pembeli dapat menambah favorit.
-- Pembeli dapat mengubah catatan favorit miliknya.
-- Pembeli dapat menghapus favorit miliknya.
-- Data favorit harus menampilkan data produk terkait jika tersedia.
-
-Endpoint utama:
-
-```text
-GET    /favorit
-POST   /favorit/{product_id}
-PUT    /favorit/{favorite_id}
-DELETE /favorit/{favorite_id}
-```
-
-### FR-06 Ulasan
-
-- Pembeli dapat membuat ulasan untuk pesanan yang memenuhi aturan bisnis.
-- Pembeli dapat melihat ulasan.
-- Pembeli dapat memfilter ulasan berdasarkan produk, rating, atau pencarian.
-- Pembeli dapat mengubah ulasan miliknya.
-- Pembeli dapat menghapus ulasan miliknya.
-- Backend harus memvalidasi kepemilikan dan rating.
-
-Endpoint utama:
-
-```text
-GET    /ulasan
-GET    /ulasan/saya
-POST   /ulasan/{order_id}
-PUT    /ulasan/{review_id}
-DELETE /ulasan/{review_id}
-```
-
-### FR-07 Keranjang
-
-- Pembeli dapat melihat isi keranjang.
-- Pembeli dapat mencari isi keranjang.
-- Pembeli dapat menambah produk ke keranjang.
-- Pembeli dapat mengubah jumlah produk.
-- Pembeli dapat menghapus item keranjang.
-- Jumlah harus lebih besar dari nol.
-- Backend harus memvalidasi stok saat penambahan dan pembaruan.
-- Item keranjang harus terikat pada user yang sedang login.
-
-Endpoint utama:
-
-```text
-GET    /keranjang
-POST   /keranjang
-PUT    /keranjang/{item_id}
-DELETE /keranjang/{item_id}
-```
-
-### FR-08 Checkout dan pembayaran QR lokal
-
-- Checkout harus mendukung beberapa produk dalam satu transaksi.
-- Backend harus mengunci baris produk saat memeriksa dan mengurangi stok.
-- Checkout harus membuat satu `CheckoutSession` untuk seluruh item.
-- Checkout yang masih aktif tidak boleh membuat order dan pengurangan stok ganda.
-- Keranjang tidak boleh dihapus saat QR baru dibuat.
-- QR harus memiliki token acak dan masa berlaku terbatas.
-- QR simulasi harus memakai URL pembayaran lokal yang dikonfigurasi melalui environment backend.
-- QR kedaluwarsa harus dapat diperbarui.
-- QR lama harus ditolak setelah refresh atau pembayaran selesai.
-- Keranjang hanya boleh dihapus setelah pembayaran sukses.
-- Pembayaran sukses harus mengubah seluruh order dalam session menjadi `sudah_dibayar`.
-- Android harus memperbarui status checkout saat dialog QR aktif.
-
-Endpoint utama:
-
-```text
-POST /keranjang/checkout
-GET  /keranjang/checkout/{session_id}/qr
-GET  /keranjang/checkout/{session_id}/status
-POST /keranjang/checkout/{session_id}/refresh
-```
-
-Endpoint halaman pembayaran lokal:
-
-```text
-GET  /pesanan/bayar/{payment_code}
-GET  /pesanan/bayar-data/{payment_code}
-POST /pesanan/bayar/{payment_code}
-```
-
-### FR-09 Pesanan
-
-- Pembeli dapat melihat riwayat pesanan sendiri.
-- Penjual dapat melihat pesanan yang berkaitan dengan produknya.
-- Pembeli dapat membayar pesanan yang belum dibayar sesuai aturan sistem.
-- Pembeli dapat membatalkan pesanan sesuai aturan status.
-- Penjual dapat mengubah status proses pesanan.
-- Riwayat harus menampilkan nama produk dari backend, bukan hanya ID.
-- Status pembayaran harus tersinkron dengan `CheckoutSession`.
-- Sistem harus mempertahankan data historis pesanan.
-
-Status proses yang digunakan:
-
-```text
-belum_dibayar
-sudah_dibayar
-diproses
-siap_diambil
-selesai
-```
-
-Endpoint utama:
-
-```text
-POST  /pesanan
-GET   /pesanan/saya
-PUT   /pesanan/{order_id}
-POST  /pesanan/{order_id}/bayar
-POST  /pesanan/{order_id}/batal
-GET   /pesanan/semua
-PATCH /pesanan/{order_id}/status
-```
-
-### FR-10 Toko dan laporan
-
-- Sistem harus menyediakan ekspor pesanan ke CSV.
-- Penjual dapat melihat ringkasan toko sesuai hak aksesnya.
-- Pembeli tidak boleh melihat data penjual yang tidak diizinkan.
-
-Endpoint utama:
-
-```text
-GET /pesanan/export.csv
-GET /toko
-GET /toko/{seller_id}
-```
-
-### FR-11 AI
-
-- Pembeli dapat mengirim pertanyaan umum melalui AI.
-- Pembeli dapat melakukan pencarian makanan berbasis bahasa alami.
-- Pembeli dapat menanyakan bahan atau kandungan produk.
-- Pembeli dapat melihat dampak aktivitasnya.
-- Penjual dapat meminta saran harga.
-- Penjual dapat meminta bantuan membuat deskripsi produk.
-- Penjual dapat melihat ringkasan penjualan.
-- Provider AI hanya boleh dipanggil dari backend.
-- API key AI tidak boleh masuk APK, website, atau response client.
-- Prompt user harus divalidasi dan dibatasi panjangnya.
-- Jawaban AI tidak boleh mengarang bahan atau menjamin keamanan makanan.
-- Pertanyaan kondisi makanan harus menyertakan batasan/safety disclaimer sesuai aturan backend.
-
-Endpoint utama:
-
-```text
-POST /ai/chat
-POST /ai/saran-harga
-POST /ai/deskripsi-produk
-GET  /ai/ringkasan-penjualan
-POST /ai/cari
-GET  /ai/dampakku
-POST /ai/tanya-produk
-```
-
-### FR-12 Profil dan navigasi Android
-
-Android harus menyediakan layar:
-
-- Login.
-- Registrasi.
-- Beranda.
-- Detail produk melalui kartu produk.
-- AI.
-- Favorit.
-- Keranjang.
-- Riwayat pesanan.
-- Profil.
-- Daftar toko.
-- Detail toko.
-- Dashboard penjual.
-
-Teks UI harus berada di `res/values/strings.xml` jika merupakan teks tampilan pengguna. Route, status internal, nama field JSON, dan nilai default teknis bukan teks UI.
-
----
-
-## 6. Kebutuhan Nonfungsional
-
-### NFR-01 Keamanan
-
-- Password harus disimpan dalam bentuk hash.
-- Endpoint terlindungi harus memerlukan bearer token.
-- Backend harus memvalidasi peran dan kepemilikan data.
-- Token, password, API key, dan connection string tidak boleh ditulis ke log atau source Android.
-- API key provider hanya berada di environment backend.
-- Endpoint pembayaran harus memvalidasi token, session, status, dan expiry.
-- Semua input dari client harus divalidasi pada boundary backend.
-
-### NFR-02 Konsistensi data
-
-- Checkout multi-item harus atomik.
-- Stok tidak boleh berkurang dua kali akibat retry session aktif.
-- Pembayaran sukses harus memperbarui seluruh order dalam session.
-- Keranjang tidak boleh hilang sebelum pembayaran sukses.
-- Perubahan stok harus memakai transaksi dan row locking.
-
-### NFR-03 Performa dan reliabilitas
-
-- UI harus menampilkan loading, empty state, dan error state.
-- Request jaringan tidak boleh dijalankan langsung di composable tanpa state management.
-- Login tidak boleh mengirim request ganda saat loading.
-- Backend harus dapat berjalan pada `0.0.0.0` untuk pengujian perangkat lokal.
-- Android emulator memakai route lokal yang sesuai dengan konfigurasi debugging.
-
-### NFR-04 Maintainability
-
-- Struktur Android mengikuti pemisahan API, repository, ViewModel, screen, navigation, dan resource.
-- Backend menggunakan router terpisah.
-- Perubahan schema harus idempotent dan tidak menghapus database aplikasi.
-- Backend tidak boleh menyimpan data produk demo hardcode untuk menggantikan database.
-
-### NFR-05 Accessibility dan usability
-
-- Tombol harus memiliki teks atau content description yang jelas.
-- Form harus memberi feedback error.
-- Tombol pembayaran harus menunjukkan status proses.
-- Countdown QR harus mudah dibaca.
-- Empty state dan error state harus dapat dipahami pengguna.
-
----
-
-## 7. Model Data Utama
-
-Entitas utama:
-
-- `User`
-- `Product`
-- `Order`
-- `CartItem`
-- `CheckoutSession`
-- `Favorite`
-- `Review`
-- Data toko/penjual
-- Refresh token atau data sesi autentikasi
-
-Relasi penting:
-
-- Satu user dapat memiliki banyak produk sebagai penjual.
-- Satu user dapat memiliki banyak item keranjang.
-- Satu checkout session memiliki banyak order.
-- Satu order dapat merujuk pada satu product dan satu checkout session.
-- Satu user dapat memiliki banyak favorit, ulasan, dan pesanan.
-- Produk milik penjual harus dilindungi dengan ownership check.
-
----
-
-## 8. Arsitektur
-
-### Android
-
-```text
-Compose UI
-   ↓
-ViewModel
-   ↓
-Repository/API client
-   ↓
-FastAPI REST API
-```
-
-Komponen Android:
-
-- Jetpack Compose.
-- MVVM.
-- Retrofit.
-- OkHttp interceptor untuk bearer token dan refresh.
-- Navigation Compose.
-- Resource string pada `res/values/strings.xml`.
-- Session storage lokal.
-
-### Backend
-
-```text
-FastAPI
-  ├── auth router
-  ├── products router
-  ├── cart router
-  ├── orders router
-  ├── social router
-  ├── reports router
-  └── ai router
-        ↓
-SQLAlchemy
-        ↓
-MySQL/MariaDB XAMPP
-```
-
----
-
-## 9. Konfigurasi Lokal
-
-Backend, database, dan web dijalankan dengan Docker Compose dari folder `backend`:
-
-```text
-docker compose up -d --build
-docker compose exec api python -m app.seed_demo
-```
-
-`seed_demo` menyiapkan akun demo dan produk surplus yang batas konsumsinya masih berlaku, sehingga katalog, keranjang, dan pembayaran QR langsung bisa diuji.
-
-Akun demo:
-
-```text
-pembeli@habisin.id / habisin123   (peran pembeli)
-penjual@habisin.id / habisin123   (peran penjual)
-```
-
-Android emulator memakai `adb reverse tcp:8000 tcp:8000` sehingga aplikasi mengakses `127.0.0.1:8000`. Perangkat fisik memakai IP LAN laptop yang berada pada jaringan Wi-Fi sama, dan IP tersebut harus didaftarkan ke backend agar isi QR pembayaran dapat dibuka HP:
-
-```text
-python update_host_ip.py            # QR berisi http://<IP-LAN>:8000/... (Wi-Fi rumah/kampus)
-python update_host_ip.py --tunnel   # QR berisi https://<acak>.trycloudflare.com/... (tanpa IP antar perangkat)
-```
-
-Skrip menulis `backend/hostnet/ip.txt` atau `backend/hostnet/base.txt` yang di-mount ke container API. Backend membacanya pada setiap permintaan QR, jadi tidak perlu restart. Status alamat yang sedang dipakai dapat dicek di `GET /health` pada field `qr_base`.
-
-Untuk demo tanpa mengatur IP sama sekali, jalankan `backend\start_demo.bat`: container dinyalakan, data demo disiapkan, URL tunnel ditulis, lalu `tunnel_watch.py` memantau URL tunnel dan memperbaruinya otomatis ketika container tunnel restart. Biarkan jendela tersebut terbuka selama demo. Syaratnya laptop dan HP terhubung internet (HP boleh memakai data seluler, tidak harus Wi-Fi yang sama).
-
-URL pembayaran lokal harus berasal dari environment atau berkas di atas. Jangan memakai IP contoh, credential, token, atau API key di dokumen ini.
-
----
-
-## 10. Kriteria Penerimaan
-
-### AC-01 Autentikasi
-
-- Registrasi user baru berhasil.
-- Email duplikat ditolak.
-- Login benar berhasil dan menyimpan sesi.
-- Password salah ditolak.
-- Endpoint protected menolak request tanpa token.
-
-### AC-02 Produk
-
-- Penjual dapat create, read, update, dan delete produk miliknya.
-- Penjual tidak dapat mengubah produk penjual lain.
-- Pembeli dapat mencari dan membuka detail produk.
-- Produk stok nol tidak muncul di feed pembeli.
-
-### AC-03 Keranjang dan checkout
-
-- Produk dapat ditambah, jumlah diubah, dan item dihapus.
-- Checkout beberapa produk membuat satu session.
-- Stok berkurang sesuai jumlah.
-- Checkout ulang pada session aktif tidak mengurangi stok dua kali.
-- Keranjang masih ada sebelum pembayaran.
-
-### AC-04 Pembayaran
-
-- QR dapat ditampilkan.
-- QR kedaluwarsa setelah batas waktu.
-- QR baru membatalkan QR lama.
-- Pembayaran sukses mengubah semua order session menjadi `sudah_dibayar`.
-- Cart terhapus hanya setelah pembayaran sukses.
-
-### AC-05 Riwayat
-
-- Riwayat menampilkan nama produk dan status pembayaran terbaru.
-- Status riwayat berubah setelah pembayaran.
-- Pembatalan tidak menghapus histori secara tidak aman.
-
-### AC-06 AI
-
-- Request AI melewati backend.
-- Provider key tidak terlihat di APK atau response.
-- Provider gagal menghasilkan status disconnected, bukan jawaban katalog palsu.
-- Pertanyaan bahan memakai data produk yang tersedia.
-
----
-
-## 11. Status Implementasi Saat Ini
-
-| Area | Status |
+| Lapisan | Teknologi |
 |---|---|
-| Android build dan unit test | Terverifikasi berhasil pada build terakhir |
-| Auth Android/API | Diimplementasikan; runtime login perlu diuji pada device aktif |
-| Produk | Diimplementasikan |
-| Favorit | Diimplementasikan |
-| Ulasan | Diimplementasikan |
-| Pesanan | Diimplementasikan |
-| Keranjang CRUD | Diimplementasikan |
-| Checkout multi-produk | Diimplementasikan pada kode; runtime end-to-end belum seluruhnya diverifikasi |
-| QR pembayaran lokal | Diimplementasikan pada kode; scan dari device lain masih perlu uji runtime |
-| Sinkronisasi pembayaran-riwayat | Diimplementasikan pada kode; perlu uji transaksi nyata pada database aktif |
-| AI | Endpoint dan UI tersedia; status provider/runtime perlu diverifikasi |
-| MariaDB XAMPP | Berhasil start dan port 3306 terverifikasi |
-| Apache XAMPP | Port HTTP/HTTPS terdeteksi aktif, panel XAMPP perlu satu instance saja |
-| Deployment produksi | Belum termasuk scope verifikasi |
+| Klien | Kotlin, Jetpack Compose, Material 3, Navigation Compose, ViewModel + StateFlow, Retrofit/OkHttp, Coil |
+| Backend | Python 3.11, FastAPI, SQLAlchemy 2.x, Pydantic, passlib/bcrypt, python-jose, qrcode |
+| Basis data | MySQL 8.0 (container Docker, volume persisten) |
+| Web | HTML/CSS/JS tanpa framework, dilayani Nginx dan memakai API yang sama |
+| Publikasi | Cloudflare Tunnel permanen (hostname tetap) |
 
----
+Kendala yang dipatuhi (SRS 2.5): UI hanya Compose, navigasi hanya Navigation Compose, state MVVM, MySQL wajib dan **Room dilarang**, minimal 4 entitas saling terhubung dan 5 fitur CRUDS penuh, kredensial hanya di berkas environment backend, alamat backend tidak ditulis di kode Android (dibaca dari konfigurasi).
 
-## 12. Risiko dan Batasan
+## 5. Struktur Repositori
 
-- IP LAN laptop dapat berubah.
-- Firewall Windows dapat memblokir akses perangkat fisik.
-- QR lokal bukan pembayaran nyata.
-- Provider AI dapat gagal, timeout, atau menolak request.
-- Schema database lama memerlukan migrasi idempotent.
-- Runtime authenticated flow belum dapat dianggap selesai hanya dari build.
-- Pengujian scan QR memerlukan dua perangkat pada jaringan yang sama.
-
----
-
-## 13. Rencana Verifikasi
-
-1. Jalankan MariaDB dan backend.
-2. Uji `/health`.
-3. Instal APK terbaru.
-4. Uji registrasi dan login.
-5. Uji CRUD produk sebagai penjual.
-6. Uji katalog sebagai pembeli.
-7. Uji favorit, ulasan, dan toko.
-8. Uji cart CRUD.
-9. Uji checkout multi-produk.
-10. Scan QR dari perangkat kedua.
-11. Bayar melalui halaman lokal.
-12. Verifikasi database, cart, status session, dan riwayat order.
-13. Uji status pesanan dari sisi penjual.
-14. Uji AI dengan provider tersedia dan provider gagal.
-15. Catat hasil runtime terpisah dari hasil compile.
-
----
-
-## 14. Artefak Project
-
-```text
-Project root:
-C:\Users\raflu\AndroidStudioProjects\Habisin
-
-Android source:
-app\src\main\java
-
-Android resources:
-app\src\main\res
-
-Backend:
-backend\app
-
-Debug APK:
-app\build\outputs\apk\debug\app-debug.apk
+```
+Habisin/
+├── app/src/main/java/com/example/habisin/
+│   ├── data/            # api, model, repository, session, storage, dummy
+│   ├── navigation/      # Screen (rute bertipe), Routes, HabisinNavHost
+│   ├── ui/
+│   │   ├── components/  # Design, HabisinIcon, Inputs, Cards, ProductCard
+│   │   ├── screens/     # 12 berkas layar (11 composable Screen + dialog)
+│   │   ├── theme/       # Color, Type, Theme
+│   │   └── util/        # Format, ImageCache, UiText
+│   └── viewmodel/       # 10 ViewModel
+├── app/src/main/res/values/    # dimens.xml (94 token), strings.xml (334 string), colors.xml
+├── backend/
+│   ├── app/             # config, database, models, schemas, security, main, seed_demo
+│   ├── app/routers/     # auth, products, cart, orders, social, reports, ai, struk
+│   ├── sql/             # create_database.sql
+│   ├── cloudflared/     # config.yml + kredensial tunnel (tidak di-commit)
+│   └── docker-compose.yml
+└── web/                 # index.html, app.js, styles.css
 ```
 
----
+## 6. Model Data (SRS Appendix B.2, SRS 6)
 
-## 15. Catatan Perubahan
+| Tabel | Atribut utama | Relasi |
+|---|---|---|
+| `users` | id, nama, email, kata_sandi (bcrypt), peran, dibuat_pada | induk produk, keranjang, pesanan, ulasan, favorit, struk, refresh token |
+| `products` | id, penjual_id, nama, deskripsi, harga_normal, harga_diskon, stok, jenis_makanan, penyimpanan, batas_konsumsi, gambar | milik satu penjual |
+| `cart_items` | id, user_id, product_id, jumlah | satu baris per produk per pembeli |
+| `orders` | id, user_id, product_id, jumlah, total_harga, status, status_bayar, checkout_session_id | milik pembeli, merujuk produk |
+| `checkout_sessions` | id, user_id, payment_code, payment_expires_at, status | satu sesi untuk banyak pesanan |
+| `ulasan` | id, user_id, product_id, order_id, rating, komentar | satu ulasan per pesanan selesai |
+| `favorit` | id, user_id, product_id, catatan | unik per pengguna+produk |
+| `struk` | id, user_id, order_id, nama_berkas, total_harga, dibuat_pada | salinan struk di server |
+| `refresh_tokens` | id, user_id, token, kedaluwarsa | penyegaran sesi |
 
-Dokumen ini menggambarkan kebutuhan dan implementasi project saat ini. Status `Diimplementasikan` berarti route atau UI tersedia di source. Status runtime hanya dianggap terverifikasi setelah flow dijalankan pada backend, database, dan perangkat Android yang aktif.
+Sembilan tabel ini memenuhi syarat minimal empat entitas utama yang saling berhubungan (SRS 6), dan setiap tabel memiliki kunci utama, kunci asing, serta stempel waktu.
 
----
+## 7. Matriks Kebutuhan Fungsional (SRS Bab 3)
 
-## 16. Pembayaran QR Simulasi
+Kolom "Dipenuhi oleh" menunjuk berkas atau endpoint yang mengimplementasikan kebutuhan.
 
-Alur pembayaran yang berlaku saat ini:
+### 7.1 Autentikasi dan Manajemen Akun (SRS 3.1, High)
 
-1. Pembeli menekan **Bayar dengan QR** pada layar Keranjang.
-2. `POST /keranjang/checkout` mengunci stok, membuat satu sesi checkout, dan menerbitkan `payment_code` acak (`secrets.token_urlsafe`) berlaku 60 detik.
-3. `GET /keranjang/checkout/{id}/qr` mengembalikan gambar QR dalam Base64 beserta `payment_code`, `total_harga`, dan `berlaku_sampai`. Isi QR adalah `<base>/pesanan/bayar/<payment_code>`.
-4. HP lain memindai QR dan membuka halaman bayar. Halaman menampilkan total, sisa waktu, dan tombol **Bayar sekarang**.
-5. `POST /pesanan/bayar/{payment_code}` menandai seluruh pesanan pada sesi `sudah_dibayar`, mengosongkan keranjang, dan menutup sesi. Aplikasi menutup dialog lewat polling status sesi.
-6. `POST /keranjang/checkout/{id}/refresh` menerbitkan kode baru dan membatalkan kode lama, sehingga QR lama tidak dapat dipakai lagi.
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | Endpoint registrasi menolak email terdaftar | `POST /auth/register`, `routers/auth.py` |
+| REQ-2 | Kata sandi hash bcrypt, tidak dikembalikan API | `security.py` (`hash_password`), `schemas.py` tanpa field sandi |
+| REQ-3 | Access token JWT + refresh token saat login | `POST /auth/login`, `security.py` |
+| REQ-4 | Endpoint penyegaran token | `POST /auth/refresh` |
+| REQ-5 | Endpoint profil pengguna aktif | `GET /auth/me` |
+| REQ-6 | Token disimpan aman dan dilampirkan tiap permintaan | `data/session/SessionStore.kt`, `data/api/AuthInterceptor.kt` |
+| REQ-7 | Arahkan ke layar Masuk bila token tidak berlaku | `AuthInterceptor` → `AuthScreens.kt` |
 
-Kode QR pada menu **Pesanan** (`GET /pesanan/{id}/qr`) memakai kode sesi checkout untuk pesanan hasil checkout, dan menerbitkan kode baru bila kode sebelumnya sudah kedaluwarsa.
+### 7.2 Otorisasi Berbasis Peran (SRS 3.2, High)
 
-Penyebab umum QR tidak dapat dibuka di HP:
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | Peran disimpan dan disertakan pada token | `models.User.peran`, `security.create_access_token` |
+| REQ-2 | Endpoint khusus penjual menolak peran lain (403) | `routers/products.py`, `routers/orders.py`, `routers/reports.py` |
+| REQ-3 | Menu dan tombol menyesuaikan peran | `ProfileScreen.kt` (menu Dashboard hanya penjual), `navigation/Screen.kt` |
+| REQ-4 | Pemeriksaan kepemilikan pada ubah/hapus | semua router (`if obj.user_id != user.id: raise 403`) |
+
+### 7.3 Katalog dan Pencarian Produk (SRS 3.3, High)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | Daftar produk dengan pencarian dan filter jenis | `GET /produk?q=&jenis_makanan=&sort=` |
+| REQ-2 | Produk kedaluwarsa/stok nol disembunyikan | `routers/products.py` (`stok > 0`, `batas_konsumsi >= now`) |
+| REQ-3 | Endpoint detail produk + data penjual | `GET /produk/{product_id}` |
+| REQ-4 | Persentase diskon dihitung dari dua harga | `ui/util/Format.kt` (`discountPercent`) |
+| REQ-5 | Keadaan memuat, kosong, dan galat | `HomeScreen.kt` (`loading`, `error`, `EmptyState`) |
+| REQ-6 | Cache gambar di memori | `ui/util/ImageCache.kt` |
+
+### 7.4 Pengelolaan Produk oleh Penjual (SRS 3.4, High)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | CRUDS penuh entitas produk | `POST/GET/PUT/DELETE /produk`, `?q=` |
+| REQ-2 | Ubah/hapus hanya oleh pemilik | `routers/products.py` |
+| REQ-3 | Unggah gambar produk | `POST /produk/{product_id}/gambar` |
+| REQ-4 | Validasi harga diskon ≤ harga normal, stok ≥ 0 | `schemas.py` + `SellerScreen.kt` |
+| REQ-5 | Formulir produk dengan validasi dan pemilih gambar | `SellerScreen.kt` |
+| REQ-6 | Daftar produk penjual + status stok/batas konsumsi | `GET /produk/penjual`, `SellerScreen.kt` |
+
+### 7.5 Keranjang Belanja (SRS 3.5, High)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | CRUDS penuh entitas keranjang | `POST/GET/PUT/DELETE /keranjang`, `?q=` |
+| REQ-2 | Tolak jumlah melebihi stok | `routers/cart.py` |
+| REQ-3 | Total dihitung server dari harga diskon | `routers/cart.py` (`total_harga`) |
+| REQ-4 | Keranjang hanya milik pemiliknya | `routers/cart.py` |
+| REQ-5 | Jumlah item, harga satuan, total tampil | `CartScreen.kt` |
+| REQ-6 | Tombol tambah, kurang, hapus per item | `CartScreen.kt`, `CartViewModel.kt` |
+
+### 7.6 Checkout dan Pembayaran QR Simulasi (SRS 3.6, High)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | Satu sesi checkout untuk seluruh item | `POST /keranjang/checkout` |
+| REQ-2 | Kunci baris produk dan validasi stok | `routers/cart.py` (`with_for_update`) |
+| REQ-3 | Pengurangan stok + pembuatan pesanan atomik | transaksi SQLAlchemy di `routers/cart.py` |
+| REQ-4 | Kode pembayaran acak berlaku 60 detik | `secrets.token_urlsafe(24)`, `PAYMENT_QR_TTL_SECONDS` |
+| REQ-5 | Endpoint gambar QR Base64 | `GET /keranjang/checkout/{id}/qr`, `GET /pesanan/{id}/qr` |
+| REQ-6 | Endpoint penyegaran QR membatalkan kode lama | `POST /keranjang/checkout/{id}/refresh` |
+| REQ-7 | Endpoint status sesi untuk pemantauan | `GET /keranjang/checkout/{id}/status` |
+| REQ-8 | Pesanan jadi sudah dibayar + keranjang kosong | `POST /pesanan/bayar/{payment_code}` |
+| REQ-9 | Hitung waktu, tombol QR baru, tutup otomatis | `CartScreen.kt`, `OrdersScreen.kt` (auto-refresh saat kode habis) |
+
+### 7.7 Riwayat dan Status Pesanan (SRS 3.7, High)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | Daftar pesanan pengguna aktif | `GET /pesanan/saya` |
+| REQ-2 | Sinkronisasi status bayar dengan sesi checkout | `routers/orders.py` |
+| REQ-3 | Pembaruan status oleh pemilik/penjual | `PUT /pesanan/{id}`, `PATCH /pesanan/{id}/status` |
+| REQ-4 | Pembatalan mengubah status, bukan menghapus | `POST /pesanan/{id}/batal` |
+| REQ-5 | Pelacak langkah + label status bayar | `OrdersScreen.kt` (`StepperProgress`) |
+| REQ-6 | Simpan struk ke penyimpanan lokal | `OrdersScreen.kt` + `LocalFileStore.kt` |
+
+### 7.8 Ulasan Produk (SRS 3.8, Medium)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | CRUDS penuh entitas ulasan | `POST /ulasan/{order_id}`, `GET/PUT/DELETE /ulasan`, `?q=` |
+| REQ-2 | Rating 1–5 | `schemas.py`, `ReviewsScreen.kt` |
+| REQ-3 | Ubah/hapus hanya oleh penulis | `routers/social.py` |
+| REQ-4 | Filter kata kunci, rating, produk | `GET /ulasan?q=&rating=&product_id=` |
+| REQ-5 | Layar Ulasan Saya | `GET /ulasan/saya`, `ReviewsScreen.kt` |
+
+### 7.9 Favorit Produk (SRS 3.9, Medium)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | CRUDS penuh entitas favorit | `POST /favorit/{product_id}`, `GET /favorit`, `PUT/DELETE /favorit/{id}`, `?q=` |
+| REQ-2 | Cegah duplikasi favorit | unique constraint `user_id+product_id` |
+| REQ-3 | Favorit hanya milik pemiliknya | `routers/social.py` |
+| REQ-4 | Daftar favorit + pencarian + ubah catatan | `FavoritesScreen.kt` |
+
+### 7.10 Dashboard dan Laporan Penjualan (SRS 3.10, Medium)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | Ringkasan penjualan penjual aktif | `GET /ai/ringkasan-penjualan`, `routers/reports.py` |
+| REQ-2 | Ekspor pesanan CSV | `GET /pesanan/export.csv` (`routers/reports.py`) |
+| REQ-3 | Jumlah produk aktif, pesanan masuk, pendapatan | `SellerScreen.kt` |
+| REQ-4 | Data laporan terbatas milik penjual | filter `penjual_id` pada `routers/reports.py` |
+
+### 7.11 Habisin AI (SRS 3.11, Medium)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | Endpoint percakapan AI | `POST /ai/chat`, `POST /ai/tanya-produk` |
+| REQ-2 | Kunci API hanya di environment backend | `backend/.env` (`GEMINI_API_KEY`), tidak pernah ke klien |
+| REQ-3 | Saran harga dan penyusun deskripsi | `POST /ai/saran-harga`, `POST /ai/deskripsi-produk` |
+| REQ-4 | Pesan galat jelas, aplikasi tidak berhenti | `AiViewModel` → `R.string.msg_ai_unavailable` |
+
+### 7.12 Penyimpanan Berkas Lokal (SRS 3.12, Low)
+
+| REQ | Kebutuhan | Dipenuhi oleh |
+|---|---|---|
+| REQ-1 | Tulis berkas struk ke penyimpanan lokal | `data/storage/LocalFileStore.kt` |
+| REQ-2 | Baca dan tampilkan kembali struk | `ReceiptsScreen.kt` |
+| REQ-3 | Daftar struk + waktu simpan | `GET /struk`, `ReceiptsViewModel.kt` |
+| REQ-4 | Tangani kegagalan tulis dengan pesan jelas | `R.string.file_failed`, `msg_receipt_local_only_saved` |
+
+## 8. Kontrak API
+
+53 endpoint pada 8 router. Dokumentasi interaktif: `https://habisin.raflipratama.my.id/docs`.
+
+| Router | Endpoint utama |
+|---|---|
+| `/auth` | `POST /register`, `POST /login`, `POST /refresh`, `GET /me` |
+| `/produk` | `GET /`, `GET /{id}`, `POST /`, `PUT /{id}`, `DELETE /{id}`, `GET /penjual`, `POST /{id}/gambar` |
+| `/keranjang` | `GET /`, `POST /`, `PUT /{id}`, `DELETE /{id}`, `POST /checkout`, `GET /checkout/{id}/qr`, `POST /checkout/{id}/refresh`, `GET /checkout/{id}/status` |
+| `/pesanan` | `POST /`, `GET /saya`, `GET /semua`, `PUT /{id}`, `PATCH /{id}/status`, `POST /{id}/batal`, `GET /{id}/qr`, `POST /{id}/bayar`, `GET /bayar/{code}`, `POST /bayar/{code}`, `GET /bayar-data/{code}` |
+| `/ulasan`, `/favorit` | CRUDS ulasan dan favorit, `GET /ulasan/saya` |
+| `/struk` | `POST /`, `GET /`, `GET /{id}`, `DELETE /{id}` |
+| `/ai` | `POST /chat`, `POST /cari`, `POST /tanya-produk`, `POST /saran-harga`, `POST /deskripsi-produk`, `GET /ringkasan-penjualan`, `GET /dampakku` |
+
+Format galat mengikuti SRS 4.4: `400` validasi, `401` autentikasi, `403` akses terlarang, `404` tidak ditemukan, `503` layanan belum dikonfigurasi.
+
+## 9. Alur Utama: Checkout dan Pembayaran QR (SRS 3.6)
+
+1. Pembeli menekan **Bayar dengan QR** di layar Keranjang.
+2. `POST /keranjang/checkout` mengunci stok, membuat satu sesi, dan menerbitkan `payment_code` acak berlaku 60 detik.
+3. `GET /keranjang/checkout/{id}/qr` mengembalikan PNG QR (Base64), total, dan sisa waktu. Isi QR: `https://habisin.raflipratama.my.id/pesanan/bayar/<kode>`.
+4. HP lain memindai QR dan membuka halaman bayar (total, hitung mundur, tombol **Bayar sekarang**).
+5. `POST /pesanan/bayar/{payment_code}` menandai seluruh pesanan sesi `sudah_dibayar`, mengosongkan keranjang, menutup sesi. Aplikasi menutup dialog lewat polling status.
+6. Bila 60 detik habis, aplikasi **otomatis menerbitkan kode baru** (kode lama tidak berlaku), dan pembeli juga dapat menekan **QR baru**.
+
+Penyebab umum QR tidak dapat dibuka:
 
 | Gejala | Penyebab | Solusi |
 |---|---|---|
-| Scan tidak membuka apa pun | Isi QR memakai `127.0.0.1` atau IP internal Docker (`172.x`) | Jalankan `python update_host_ip.py` lalu cek `qr_base` di `/health` |
-| Scan membuka tetapi halaman kosong/error | IP LAN berubah karena DHCP | Jalankan ulang `python update_host_ip.py` |
-| Scan tetap gagal di Wi-Fi publik/kafe | Wi-Fi memblokir akses antar-perangkat | Pakai tunnel permanen (bagian 16.1) |
-| URL `*.trycloudflare.com` mati setelah restart | Quick tunnel berganti hostname tiap container dijalankan | Pakai tunnel permanen (bagian 16.1) |
-| Halaman bayar bilang kedaluwarsa | `payment_code` hanya berlaku 60 detik | Tekan **QR baru** di dialog pembayaran sebelum memindai |
-| Aplikasi tidak menampilkan dialog QR | Keranjang kosong atau stok tidak mencukupi | Pesan kesalahan sekarang tampil sebagai snackbar pada layar Keranjang/Pesanan |
+| QR tidak membuka apa pun | isi QR memakai `127.0.0.1`/IP Docker | cek `qr_base` pada `/health` |
+| Halaman bayar bilang kedaluwarsa | kode hanya 60 detik | tekan **QR baru** atau tunggu auto-refresh |
+| Domain tidak menjawab | container `tunnel-named` mati | `docker compose --profile named up -d tunnel-named` |
 
----
+## 10. Kebutuhan Nonfungsional (SRS 5)
 
-### 16.1 Tunnel permanen `habisin.raflipratama.my.id`
+| Aspek | Target SRS | Implementasi |
+|---|---|---|
+| Kinerja | daftar 50 produk < 2 dtk; checkout < 3 dtk; QR < 1 dtk | index `products`, satu transaksi checkout, `qrcode` lokal |
+| Kinerja klien | buka aplikasi < 3 dtk, gambar ter-cache | `ImageCache`, Compose lazy grid |
+| Keselamatan data | keranjang/pesanan di DB, bukan memori | tabel `cart_items`, `orders` |
+| Keselamatan data | pembatalan mengubah status, bukan hapus | `POST /pesanan/{id}/batal` |
+| Keamanan pangan | produk lewat batas konsumsi tidak tampil | filter `batas_konsumsi >= now` |
+| Keamanan | semua endpoint ubah data wajib JWT | `Depends(current_user)` |
+| Keamanan | kata sandi bcrypt, tidak pernah dikembalikan | `security.py`, `schemas.py` |
+| Keamanan | kunci AI hanya di `.env` backend | `routers/ai.py` |
+| Kegunaan | alur beli selesai tanpa petunjuk | 5 layar utama + snackbar tiap aksi |
+| Perawatan | pisah lapisan data/domain/UI, router per fitur | `data/`, `viewmodel/`, `ui/`, `routers/` |
+| Portabilitas | backend dapat dipindah | Docker Compose |
+| Aksesibilitas | target sentuh ≥ 44 dp, label pada ikon | `dimensionResource` + `contentDescription` dari `strings.xml` |
+| Lokalisasi | seluruh teks di resource, Rupiah, Asia/Jakarta | `strings.xml` (334 string), `Format.kt` |
 
-Base URL QR sekarang tetap, tidak berubah walau Docker atau laptop di-restart:
+## 11. Desain Antarmuka (SRS 4.1)
 
-```
-https://habisin.raflipratama.my.id
-```
-
-Konfigurasi yang dipakai:
-
-| Berkas | Isi |
+| Token | Nilai |
 |---|---|
-| `backend/cloudflared/config.yml` | `tunnel: a590ae83-…`, ingress `habisin.raflipratama.my.id` -> `http://web:80` |
-| `backend/cloudflared/cert.pem` | sertifikat akun Cloudflare hasil `cloudflared tunnel login` (tidak di-commit) |
-| `backend/cloudflared/<id>.json` | kredensial tunnel (tidak di-commit) |
-| `backend/hostnet/base.txt` | `https://habisin.raflipratama.my.id` |
-| `backend/docker-compose.yml` | service `tunnel-named` (profile `named`) membaca `config.yml` |
+| Warna utama | `#2E7D32` |
+| Latar | `#F7FAF5` (krem) |
+| Aksen | `#F2994A` (amber) |
+| Garis batas | `#E4ECE4` |
+| Sudut | 16–22 dp |
+| Tipografi | Poppins |
 
-Perintah operasional:
+Aturan tanpa hardcode yang dipatuhi: seluruh teks ada di `res/values/strings.xml`, seluruh ukuran di `res/values/dimens.xml` (94 token), warna hanya di `ui/theme/Color.kt`, tipografi hanya di `ui/theme/Type.kt`. Audit saat ini: 0 literal `.dp`, 0 `Text("…")`, 0 `Color(0x…)` di luar tema, 0 `fontSize` manual.
+
+Layar: Login, Daftar, Beranda, Detail Produk, Keranjang, Dialog QR, Pesanan, Ulasan Saya, Struk Tersimpan, Favorit, Toko, Detail Toko, Profil, Dashboard Penjual, Habisin AI.
+
+## 12. Menjalankan Proyek
+
+### 12.1 Backend (Docker)
 
 ```bash
 cd backend
-docker compose stop tunnel                        # matikan quick tunnel
-docker compose --profile named up -d tunnel-named # nyalakan tunnel permanen
-curl -s https://habisin.raflipratama.my.id/health # cek qr_base
+cp .env.example .env          # isi DATABASE_URL, JWT_SECRET, GEMINI_API_KEY bila ada
+docker compose up -d db api web
+docker compose exec api python -m app.seed_demo    # akun & produk demo
+curl -s http://127.0.0.1:8000/health
 ```
 
-Karena hostname-nya milik sendiri, QR lama tetap sah setelah restart. Yang tetap kedaluwarsa hanya `payment_code` (60 detik) — aturan bisnis, bukan masalah jaringan.
+Tunnel permanen (URL tetap, tidak berubah saat restart):
 
----
+```bash
+docker compose stop tunnel
+docker compose --profile named up -d tunnel-named
+curl -s https://habisin.raflipratama.my.id/health
+```
 
-## 17. Status Fitur terhadap Pedoman PAM 2026
+### 12.2 Aplikasi Android
 
-| Ketentuan Pedoman | Implementasi | Status |
+```bash
+export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
+./gradlew :app:installDebug
+```
+
+Alamat API dibaca dari `BuildConfig` (`app/build.gradle.kts`), bukan ditulis di kode. Untuk perangkat fisik gunakan `adb reverse tcp:8000 tcp:8000` atau alamat domain publik.
+
+### 12.3 Antarmuka web
+
+`http://localhost` (container `web`) atau `https://habisin.raflipratama.my.id`.
+
+## 13. Akun Demo
+
+| Peran | Email | Kata sandi |
 |---|---|---|
-| Login dan register | `POST /auth/register`, `POST /auth/login`, layar Masuk/Daftar Compose | Selesai |
-| Access token JWT dan refresh token | `security.py`, `POST /auth/refresh`, `AuthInterceptor` | Selesai |
-| Otorisasi berbasis peran | Peran `pembeli`/`penjual`, menu berbeda, endpoint menolak dengan 403 | Selesai |
-| Navigasi multi-halaman | Navigation Compose pada `HabisinNavHost` | Selesai |
-| State management MVVM | ViewModel + Repository + Retrofit untuk setiap fitur | Selesai |
-| Minimal 4 entitas saling terhubung | `users`, `products`, `cart_items`, `orders`, `checkout_sessions`, `ulasan`, `favorit` | Selesai |
-| Minimal 5 fitur CRUDS penuh | Produk, keranjang, pesanan, ulasan, favorit (create/read/update/delete/search) | Selesai |
-| Integrasi REST API dan parsing JSON | Retrofit + Gson pada seluruh layar | Selesai |
-| Database MySQL | MySQL 8.0 dalam container Docker | Selesai |
-| Penyimpanan berkas lokal | `LocalFileStore` menyimpan dan membaca struk pesanan, sekaligus disalin ke tabel `struk` di MySQL | Selesai |
-| UI hanya Jetpack Compose | Seluruh layar Compose Material 3 dengan tema Habisin | Selesai |
-| README berisi status fitur dan cara menjalankan | Dokumen ini, bagian 9, 11, 16, dan 17 | Selesai |
+| Pembeli | `pembeli@habisin.id` | `habisin123` |
+| Penjual | `penjual@habisin.id` | `habisin123` |
 
----
+Dibuat oleh `python -m app.seed_demo`. Kata sandi hanya untuk demo lokal.
 
-## 18. Struk Pembayaran
+## 14. Batasan Versi 1.0 (SRS Appendix C)
 
-Struk disimpan pada dua tempat agar daftar selalu konsisten dan tetap bisa dibaca tanpa jaringan:
+1. Pembayaran masih simulasi lokal, belum terhubung penyedia pembayaran nyata.
+2. Notifikasi pesanan baru belum tersedia; penjual membuka aplikasi untuk memeriksa.
+3. Produk yang melewati batas konsumsi disembunyikan; penjual perlu memperbarui data berkala.
+4. Habisin AI bergantung pada layanan model bahasa pihak ketiga dan kunci API valid.
+5. Pengujian beban skala besar belum dilakukan.
+6. Antarmuka web mencakup alur utama, belum selengkap aplikasi Android.
 
-1. **MySQL** — tabel `struk` (`user_id`, `order_id`, `nama_berkas`, `isi`, `total_harga`, `dibuat_pada`). Isi struk dibuat di backend dari data pesanan, sehingga formatnya seragam.
-2. **Penyimpanan perangkat** — salinan berkas `struk-<id>.txt` pada `filesDir/struk` melalui `LocalFileStore`.
+## 15. Status Implementasi dan Progress (SRS 2.6, 6)
 
-Endpoint:
+Seluruh kebutuhan fungsional SRS Bab 3 terimplementasi dan terverifikasi: `./gradlew :app:installDebug` sukses, aplikasi berjalan di emulator tanpa `FATAL EXCEPTION`, alur login → katalog → keranjang → checkout → QR → bayar → struk diuji langsung terhadap backend Docker.
 
-```text
-POST   /struk              { "order_id": 66 }  -> simpan/perbarui struk (upsert per pesanan)
-GET    /struk?q=struk      -> daftar struk milik pengguna
-GET    /struk/{id}         -> detail beserta isi struk
-DELETE /struk/{id}         -> hapus struk (server dan berkas lokal di aplikasi)
-```
+Riwayat commit mingguan (syarat minimal 30 commit):
 
-Layar **Struk Tersimpan** membaca daftar dari `GET /struk` dan menggabungkannya dengan berkas lokal yang belum tersinkron. Berkas yang hanya ada di perangkat diberi penanda `hanya di perangkat`, sehingga daftar tidak pernah tampak kosong padahal struk sudah tersimpan.
-
----
-
-## 19. Matriks CRUDS Fitur
-
-Bukti pemenuhan syarat "minimal 5 fitur dengan CRUDS penuh" pada pedoman.
-
-| Fitur | Create | Read | Update | Delete | Search |
-|---|---|---|---|---|---|
-| Produk | `POST /produk` | `GET /produk`, `GET /produk/{id}` | `PUT /produk/{id}` | `DELETE /produk/{id}` | `?q=`, `?jenis_makanan=`, `?sort=` |
-| Keranjang | `POST /keranjang` | `GET /keranjang` | `PUT /keranjang/{id}` | `DELETE /keranjang/{id}` | `?q=` |
-| Ulasan | `POST /ulasan/{order_id}` | `GET /ulasan`, `GET /ulasan/saya` | `PUT /ulasan/{id}` | `DELETE /ulasan/{id}` | `?q=`, `?rating=`, `?product_id=` |
-| Favorit | `POST /favorit/{product_id}` | `GET /favorit` | `PUT /favorit/{id}` (catatan) | `DELETE /favorit/{id}` | `?q=` |
-| Struk | `POST /struk` | `GET /struk`, `GET /struk/{id}` | `POST /struk` (upsert per pesanan) | `DELETE /struk/{id}` | `?q=` |
-| Pesanan | `POST /pesanan` | `GET /pesanan/saya`, `GET /pesanan/semua` | `PUT /pesanan/{id}`, `PATCH /pesanan/{id}/status` | `POST /pesanan/{id}/batal` (status, bukan hapus — SRS REQ-4) | `?q=`, `?status=` |
-
-Lima fitur pertama memenuhi CRUDS penuh; pesanan sengaja tidak menghapus baris karena SRS 3.7 mewajibkan riwayat tetap utuh saat dibatalkan.
-
-## 20. Entitas Basis Data
-
-| Tabel | Relasi |
+| Tahap | Isi commit |
 |---|---|
-| `users` | induk untuk `products`, `cart_items`, `orders`, `ulasan`, `favorit`, `struk`, `refresh_tokens` |
-| `products` | milik satu `users` (penjual); dirujuk `cart_items`, `orders`, `ulasan`, `favorit` |
-| `cart_items` | satu baris per produk per pembeli |
-| `orders` | milik pembeli, merujuk produk, opsional ke `checkout_sessions` |
-| `checkout_sessions` | satu sesi pembayaran untuk banyak `orders` (kode QR acak 60 detik) |
-| `ulasan` | satu ulasan per pesanan selesai |
-| `favorit` | produk yang ditandai pembeli + catatan pribadi |
-| `struk` | salinan struk pembayaran yang juga disimpan sebagai berkas di perangkat |
-| `refresh_tokens` | token penyegaran sesi |
+| Fondasi | gitignore, konfigurasi Gradle, manifest |
+| Desain | token warna/tipografi, dimens, string, aset launcher |
+| Data | model, repository, klien HTTP, API per fitur, penyimpanan sesi/berkas |
+| UI | komponen reusable, navigasi, layar per fitur |
+| Backend | konfigurasi & model, keamanan JWT, router per fitur, seed, Docker |
+| Web | antarmuka web pembayaran |
+| Dokumen | SRS, README, matriks kebutuhan |
 
-## 21. Progress Mingguan
+## 16. Lisensi dan Atribusi
 
-Kewajiban pedoman: minimal satu progress per minggu yang dicantumkan di README.
-
-Status repo saat ini: **2 commit baru** (tahap setup). Fitur aplikasi sudah berjalan di mesin lokal dan akan di-commit bertahap, satu kelompok per minggu, agar riwayat commit mencerminkan proses pengerjaan.
-
-### 21.1 Progress yang sudah di-commit
-
-| Minggu | Tanggal | Progress | Commit |
-|---|---|---|---|
-| 1 | 22 Nov 2026 | `.gitignore` untuk data lokal (MySQL, `.env`, log, tunnel) | `f07d1e7` |
-| 1 | 22 Nov 2026 | Konfigurasi Gradle, wrapper, manifest, `keepRules`, `proguard` | `c322a05` |
-
-### 21.2 Rencana commit berikutnya
-
-| # | Kelompok commit | Status |
-|---|---|---|
-| 3 | Tema: token warna, tipografi, `dimens.xml`, `strings.xml`, aset launcher | belum |
-| 4 | Klien REST API, model, sesi, util format | belum |
-| 5 | Komponen reusable: tombol, input, kartu, ikon | belum |
-| 6 | Data contoh produk, toko, pesanan, ulasan, struk | belum |
-| 7 | Navigasi Compose bertipe | belum |
-| 8 | Endpoint klien produk, toko, laporan | belum |
-| 9 | ViewModel autentikasi dan beranda | belum |
-| 10 | ViewModel keranjang dan pesanan | belum |
-| 11 | ViewModel favorit, ulasan, struk | belum |
-| 12 | ViewModel penjual, toko, Habisin AI | belum |
-| 13 | Layar masuk dan buat akun | belum |
-| 14 | Layar beranda | belum |
-| 15 | Layar keranjang dan pembayaran QR | belum |
-| 16 | Layar pesanan dan struk tersimpan | belum |
-| 17 | Layar favorit, ulasan, daftar toko, detail toko | belum |
-| 18 | Layar profil | belum |
-| 19 | Dashboard penjual dan Habisin AI | belum |
-| 20 | Unit test dan instrumented test | belum |
-| 21 | Backend: konfigurasi, Docker, skema basis data | belum |
-| 22 | Backend: autentikasi JWT dan produk | belum |
-| 23 | Backend: keranjang dan checkout QR | belum |
-| 24 | Backend: pesanan dan pembayaran | belum |
-| 25 | Backend: ulasan, favorit, laporan, AI, struk | belum |
-| 26 | Backend: seed demo dan skrip operasional | belum |
-| 27 | Klien web pembayaran | belum |
-| 28 | README: SRS, matriks CRUDS, progress | belum |
+Proyek akademik Mata Kuliah Pengembangan Aplikasi Mobile 2026, Program Studi Teknologi Informasi, Universitas Muhammadiyah Yogyakarta. Hak atas dokumen SRS dan kode sumber berada pada Muhamad Rafli Pratama (20240140003).
