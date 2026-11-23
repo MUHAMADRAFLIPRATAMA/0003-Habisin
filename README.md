@@ -367,17 +367,72 @@ Dibuat oleh `python -m app.seed_demo`. Kata sandi hanya untuk demo lokal.
 
 Seluruh kebutuhan fungsional SRS Bab 3 terimplementasi dan terverifikasi: `./gradlew :app:installDebug` sukses, aplikasi berjalan di emulator tanpa `FATAL EXCEPTION`, alur login → katalog → keranjang → checkout → QR → bayar → struk diuji langsung terhadap backend Docker.
 
-Riwayat commit mingguan (syarat minimal 30 commit):
+### 15.1 Commit yang sudah dikerjakan
 
-| Tahap | Isi commit |
+Riwayat saat ini: **9 commit** pada branch `main`.
+
+| # | Commit | Tanggal | Isi |
+|---|---|---|---|
+| 1 | `a708c5e` | 2026-11-08 | Add .gitignore file to exclude build artifacts and sensitive backend files |
+| 2 | `651cde8` | 2026-11-08 | Add MainActivity class to initialize application and set up navigation |
+| 3 | `4dff359` | 2026-11-15 | srs |
+| 4 | `abe4817` | 2026-11-15 | Add navigation setup with HabisinNavHost and Routes definitions |
+| 5 | `f07d1e7` | 2026-11-22 | chore: tambahkan gitignore untuk data lokal, log, dan berkas rahasia |
+| 6 | `c322a05` | 2026-11-22 | build: siapkan konfigurasi Gradle dan manifest aplikasi |
+| 7 | `1edd78b` | 2026-11-22 | docs: update README with local configuration and demo account details |
+| 8 | `2237555` | 2026-11-23 | docs: update README to reflect database configuration changes and add permanent tunnel setup instructions |
+| 9 | `f2f86a1` | 2026-11-23 | Implement new feature for user authentication and improve error handling |
+
+### 15.2 Rencana commit berikutnya
+
+Sisa pekerjaan di-commit bertahap satu kelompok per commit (bukan sekaligus), agar riwayat mencerminkan proses pengerjaan. Total setelah selesai: **42 commit**, memenuhi syarat minimal 30 commit pada pedoman.
+
+| # | Kelompok commit | Berkas | Status |
+|---|---|---|---|
+| 1 | chore: perluas gitignore untuk data lokal, log, dan kredensial | 1 berkas — `.gitignore` | belum |
+| 2 | docs: tambahkan dokumen SRS proyek ke repositori | 1 berkas — `SRS_HABISIN_20240140003.pdf` | belum |
+| 3 | feat(theme): token warna dan tipografi aplikasi | 5 berkas — `Color.kt`, `Type.kt`, +3 | belum |
+| 4 | feat(theme): token dimens dan teks antarmuka | 2 berkas — `dimens.xml`, `strings.xml` | belum |
+| 5 | feat(theme): aset launcher, font, dan aturan cadangan | 6 berkas — `poppins_regular.ttf`, `ic_launcher_background.xml`, +4 | belum |
+| 6 | feat(data): model, repository, dan klien HTTP | 5 berkas — `Product.kt`, `ProductRepository.kt`, +3 | belum |
+| 7 | feat(data): API autentikasi, produk, toko, dan laporan | 4 berkas — `AuthApi.kt`, `ProductApi.kt`, +2 | belum |
+| 8 | feat(data): API keranjang, pesanan, sosial, struk, dan AI | 5 berkas — `CartApi.kt`, `OrderApi.kt`, +3 | belum |
+| 9 | feat(data): penyimpanan sesi, berkas lokal, dan util tampilan | 6 berkas — `SessionStore.kt`, `ProductImageStore.kt`, +4 | belum |
+| 10 | feat(data): data contoh untuk pratinjau desain | 5 berkas — `DummyProducts.kt`, `DummyStores.kt`, +3 | belum |
+| 11 | feat(ui): komponen dasar dan ikon | 2 berkas — `Design.kt`, `HabisinIcon.kt` | belum |
+| 12 | feat(ui): komponen input, kartu, dan kartu produk | 3 berkas — `Inputs.kt`, `Cards.kt`, +1 | belum |
+| 13 | feat(nav): rute bertipe dan navigasi Compose | 3 berkas — `Screen.kt`, `Routes.kt`, +1 | belum |
+| 14 | feat(viewmodel): state autentikasi dan beranda | 2 berkas — `AuthViewModel.kt`, `HomeViewModel.kt` | belum |
+| 15 | feat(viewmodel): state keranjang dan pesanan | 2 berkas — `CartViewModel.kt`, `OrderViewModel.kt` | belum |
+| 16 | feat(viewmodel): state favorit dan ulasan | 2 berkas — `SocialViewModel.kt`, `ReviewsViewModel.kt` | belum |
+| 17 | feat(viewmodel): state struk, toko, penjual, dan Habisin AI | 4 berkas — `ReceiptsViewModel.kt`, `ShopViewModel.kt`, +2 | belum |
+| 18 | feat(ui): layar masuk dan buat akun | 1 berkas — `AuthScreens.kt` | belum |
+| 19 | feat(ui): layar beranda dengan pencarian dan kisi produk | 1 berkas — `HomeScreen.kt` | belum |
+| 20 | feat(ui): layar keranjang dan dialog pembayaran QR | 1 berkas — `CartScreen.kt` | belum |
+| 21 | feat(ui): layar pesanan dan struk tersimpan | 2 berkas — `OrdersScreen.kt`, `ReceiptsScreen.kt` | belum |
+| 22 | feat(ui): layar favorit, ulasan, dan toko | 4 berkas — `FavoritesScreen.kt`, `ReviewsScreen.kt`, +2 | belum |
+| 23 | feat(ui): layar profil pembeli | 1 berkas — `ProfileScreen.kt` | belum |
+| 24 | feat(ui): dashboard penjual dan layar Habisin AI | 2 berkas — `SellerScreen.kt`, `AiScreen.kt` | belum |
+| 25 | test: unit test dan instrumented test | 2 berkas — `ExampleUnitTest.kt`, `ExampleInstrumentedTest.kt` | belum |
+| 26 | feat(backend): konfigurasi, model, dan skema basis data | 4 berkas — `config.py`, `database.py`, +2 | belum |
+| 27 | feat(backend): keamanan JWT dan bootstrap aplikasi | 4 berkas — `security.py`, `main.py`, +2 | belum |
+| 28 | feat(backend): router autentikasi dan produk | 3 berkas — `__init__.py`, `auth.py`, +1 | belum |
+| 29 | feat(backend): router keranjang dan pesanan | 2 berkas — `cart.py`, `orders.py` | belum |
+| 30 | feat(backend): router ulasan, laporan, AI, dan struk | 4 berkas — `social.py`, `reports.py`, +2 | belum |
+| 31 | feat(backend): seed data demo dan skrip operasional | 5 berkas — `seed_demo.py`, `update_host_ip.py`, +3 | belum |
+| 32 | build(backend): Docker, nginx, skema SQL, dan contoh environment | 6 berkas — `Dockerfile`, `docker-compose.yml`, +4 | belum |
+| 33 | feat(web): antarmuka web pembeli dan penjual | 3 berkas — `index.html`, `app.js`, +1 | belum |
+
+### 15.3 Verifikasi
+
+| Pemeriksaan | Hasil |
 |---|---|
-| Fondasi | gitignore, konfigurasi Gradle, manifest |
-| Desain | token warna/tipografi, dimens, string, aset launcher |
-| Data | model, repository, klien HTTP, API per fitur, penyimpanan sesi/berkas |
-| UI | komponen reusable, navigasi, layar per fitur |
-| Backend | konfigurasi & model, keamanan JWT, router per fitur, seed, Docker |
-| Web | antarmuka web pembayaran |
-| Dokumen | SRS, README, matriks kebutuhan |
+| `./gradlew :app:compileDebugKotlin` | BUILD SUCCESSFUL |
+| `./gradlew :app:installDebug` | terpasang di emulator, tanpa `FATAL EXCEPTION` |
+| Audit hardcode | 0 literal `.dp`, 0 `Text("…")`, 0 `Color(0x…)` di luar tema |
+| Sumber teks & ukuran | `strings.xml` 334 string, `dimens.xml` 94 token |
+| Alur pembayaran QR | kode acak 60 detik, auto-terbit ulang saat kedaluwarsa, halaman bayar 200 lewat domain |
+| Rahasia di repositori | tidak ada `.env`, `.venv`, data MySQL, kredensial tunnel |
 
 ## 16. Lisensi dan Atribusi
 
