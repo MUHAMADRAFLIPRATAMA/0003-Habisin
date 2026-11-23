@@ -16,7 +16,7 @@ Project terdiri dari:
 
 - Android native dengan Jetpack Compose dan MVVM.
 - Backend REST API dengan FastAPI.
-- Database MySQL/MariaDB melalui XAMPP.
+- Database MySQL/MariaDB melalui Docker.
 - Web pembayaran lokal untuk QR simulasi.
 - Fitur AI melalui backend.
 
@@ -631,8 +631,41 @@ Penyebab umum QR tidak dapat dibuka di HP:
 |---|---|---|
 | Scan tidak membuka apa pun | Isi QR memakai `127.0.0.1` atau IP internal Docker (`172.x`) | Jalankan `python update_host_ip.py` lalu cek `qr_base` di `/health` |
 | Scan membuka tetapi halaman kosong/error | IP LAN berubah karena DHCP | Jalankan ulang `python update_host_ip.py` |
-| Scan tetap gagal di Wi-Fi publik/kafe | Wi-Fi memblokir akses antar-perangkat | Jalankan `python update_host_ip.py --tunnel`, atau `start_demo.bat` |
+| Scan tetap gagal di Wi-Fi publik/kafe | Wi-Fi memblokir akses antar-perangkat | Pakai tunnel permanen (bagian 16.1) |
+| URL `*.trycloudflare.com` mati setelah restart | Quick tunnel berganti hostname tiap container dijalankan | Pakai tunnel permanen (bagian 16.1) |
+| Halaman bayar bilang kedaluwarsa | `payment_code` hanya berlaku 60 detik | Tekan **QR baru** di dialog pembayaran sebelum memindai |
 | Aplikasi tidak menampilkan dialog QR | Keranjang kosong atau stok tidak mencukupi | Pesan kesalahan sekarang tampil sebagai snackbar pada layar Keranjang/Pesanan |
+
+---
+
+### 16.1 Tunnel permanen `habisin.raflipratama.my.id`
+
+Base URL QR sekarang tetap, tidak berubah walau Docker atau laptop di-restart:
+
+```
+https://habisin.raflipratama.my.id
+```
+
+Konfigurasi yang dipakai:
+
+| Berkas | Isi |
+|---|---|
+| `backend/cloudflared/config.yml` | `tunnel: a590ae83-…`, ingress `habisin.raflipratama.my.id` -> `http://web:80` |
+| `backend/cloudflared/cert.pem` | sertifikat akun Cloudflare hasil `cloudflared tunnel login` (tidak di-commit) |
+| `backend/cloudflared/<id>.json` | kredensial tunnel (tidak di-commit) |
+| `backend/hostnet/base.txt` | `https://habisin.raflipratama.my.id` |
+| `backend/docker-compose.yml` | service `tunnel-named` (profile `named`) membaca `config.yml` |
+
+Perintah operasional:
+
+```bash
+cd backend
+docker compose stop tunnel                        # matikan quick tunnel
+docker compose --profile named up -d tunnel-named # nyalakan tunnel permanen
+curl -s https://habisin.raflipratama.my.id/health # cek qr_base
+```
+
+Karena hostname-nya milik sendiri, QR lama tetap sah setelah restart. Yang tetap kedaluwarsa hanya `payment_code` (60 detik) — aturan bisnis, bukan masalah jaringan.
 
 ---
 
@@ -747,4 +780,3 @@ Status repo saat ini: **2 commit baru** (tahap setup). Fitur aplikasi sudah berj
 | 26 | Backend: seed demo dan skrip operasional | belum |
 | 27 | Klien web pembayaran | belum |
 | 28 | README: SRS, matriks CRUDS, progress | belum |
-
