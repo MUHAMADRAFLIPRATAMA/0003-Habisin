@@ -179,3 +179,39 @@ fun CartScreen(
                             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_6))) {
                                 Box(
                                     Modifier.size(dimensionResource(R.dimen.icon_24)).clickable { vm.remove(item.id) },
+                                    contentAlignment = Alignment.Center,
+                                ) { HabisinIcon(HabisinIconKind.Trash, size = dimensionResource(R.dimen.icon_16), color = HabisinColor.Faint) }
+                                HabisinQtyStepper(
+                                    quantity = item.jumlah,
+                                    onChange = { value ->
+                                        if (product == null || value <= product.stock) vm.update(item.id, value)
+                                    },
+                                    min = 1,
+                                    max = product?.stock?.coerceAtLeast(1) ?: 99,
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(dimensionResource(R.dimen.radius_18)))
+                                .border(dimensionResource(R.dimen.stroke_1), HabisinColor.Border, RoundedCornerShape(dimensionResource(R.dimen.radius_18)))
+                                .padding(dimensionResource(R.dimen.space_16)),
+                            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_6)),
+                        ) {
+                            Text(stringResource(R.string.cart_summary), style = MaterialTheme.typography.titleMedium)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(
+                                    stringResource(R.string.cart_item_count, totalItem),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = HabisinColor.Muted,
+                                )
+                                Text(rupiah(total), style = MaterialTheme.typography.bodySmall, color = HabisinColor.Ink)
+                            }
+                            Box(Modifier.fillMaxWidth().height(dimensionResource(R.dimen.stroke_1)).background(HabisinColor.BorderSoft))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(stringResource(R.string.cart_total), style = MaterialTheme.typography.titleMedium)
+                                Text(rupiah(total), style = MaterialTheme.typography.titleLarge, color = HabisinColor.Green)
+                            }
