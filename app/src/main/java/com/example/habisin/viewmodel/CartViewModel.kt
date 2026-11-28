@@ -29,3 +29,18 @@ class CartViewModel : ViewModel() {
     private val _aiAnswer = MutableStateFlow<String?>(null)
     val aiAnswer = _aiAnswer.asStateFlow()
     private val _aiLoading = MutableStateFlow(false)
+    val aiLoading = _aiLoading.asStateFlow()
+
+    fun loadAiInsight() =
+        viewModelScope.launch {
+            runCatching { ApiClient.aiApi.cartInsight() }
+                .onSuccess { _aiInsight.value = it }
+                // Biarkan data terakhir tetap tampil bila permintaan gagal sesaat.
+                .onFailure { /* deteksi bersifat opsional, galat tidak perlu mengganggu layar */ }
+        }
+
+    fun tanyaAi(pertanyaan: String) =
+        viewModelScope.launch {
+            val isi = pertanyaan.trim()
+            if (isi.isBlank()) return@launch
+            _aiLoading.value = true
