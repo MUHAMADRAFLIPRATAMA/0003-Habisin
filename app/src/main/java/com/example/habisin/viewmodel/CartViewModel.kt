@@ -60,3 +60,19 @@ class CartViewModel : ViewModel() {
                 }.onFailure { _message.value = ApiError.message(it, R.string.msg_cart_ai_failed) }
             _aiLoading.value = false
         }
+
+    fun clearAiAnswer() {
+        _aiAnswer.value = null
+    }
+
+    fun clearMessage() {
+        _message.value = null
+    }
+
+    fun checkout() =
+        viewModelScope.launch {
+            runCatching { ApiClient.cartApi.checkout() }
+                .onSuccess { sesi ->
+                    load()
+                    loadQr(sesi.session_id)
+                }.onFailure {
