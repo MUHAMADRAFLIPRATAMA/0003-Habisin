@@ -138,3 +138,18 @@ class CartViewModel : ViewModel() {
     ) = viewModelScope.launch {
         runCatching { ApiClient.cartApi.update(id, CartUpdateRequest(quantity)) }
             .onSuccess { load() }
+            .onFailure { _message.value = ApiError.message(it, R.string.msg_cart_update_failed) }
+    }
+
+    fun remove(id: Long) =
+        viewModelScope.launch {
+            runCatching { ApiClient.cartApi.delete(id) }
+                .onSuccess { _items.value = _items.value.filterNot { it.id == id } }
+                .onFailure { _message.value = ApiError.message(it, R.string.msg_cart_delete_failed) }
+        }
+
+    companion object {
+        /** Nilai `status` pada respons sesi checkout ketika pembayaran sudah masuk. */
+        const val STATUS_LUNAS = "dibayar"
+    }
+}
