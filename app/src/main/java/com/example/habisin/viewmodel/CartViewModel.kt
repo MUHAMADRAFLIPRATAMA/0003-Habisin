@@ -76,3 +76,18 @@ class CartViewModel : ViewModel() {
                     load()
                     loadQr(sesi.session_id)
                 }.onFailure {
+                    _message.value = ApiError.message(it, R.string.msg_checkout_failed)
+                }
+        }
+
+    fun loadQr(id: Long) =
+        viewModelScope.launch {
+            runCatching { ApiClient.cartApi.checkoutQr(id) }
+                .onSuccess { _checkoutQr.value = it }
+                .onFailure { _message.value = ApiError.message(it, R.string.msg_qr_failed) }
+        }
+
+    fun refreshQr() =
+        viewModelScope.launch {
+            val id = _checkoutQr.value?.session_id ?: return@launch
+            runCatching { ApiClient.cartApi.refreshCheckout(id) }
