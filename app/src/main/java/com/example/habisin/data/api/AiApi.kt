@@ -127,3 +127,19 @@ data class CartAiItem(
     val cart_id: Long,
     val produk_id: Long,
     val nama: String,
+    val jumlah: Int,
+    val harga: Int,
+    val harga_normal: Int,
+    val subtotal: Int,
+    val stok: Int,
+    val jenis_makanan: String? = null,
+    val batas_konsumsi: String? = null,
+    val sisa_jam: Int? = null,
+)
+
+data class CartAiRingkasan(
+    val jumlah_item: Int,
+    val jenis_produk: Int,
+    val total: Int,
+    val hemat: Int,
+    val segera_kedaluwarsa: List<String> = emptyList(),
