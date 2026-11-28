@@ -34,3 +34,39 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.delay
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.example.habisin.R
+import com.example.habisin.ui.util.asString
+import com.example.habisin.ui.components.HabisinBottomBar
+import com.example.habisin.ui.components.HabisinButton
+import com.example.habisin.ui.components.HabisinIcon
+import com.example.habisin.ui.components.HabisinIconKind
+import com.example.habisin.ui.components.HabisinQtyStepper
+import com.example.habisin.ui.components.HabisinTextField
+import com.example.habisin.ui.components.HabisinSearchField
+import com.example.habisin.ui.components.HabisinTopBar
+import com.example.habisin.ui.theme.HabisinColor
+import com.example.habisin.ui.util.rupiah
+import com.example.habisin.viewmodel.CartViewModel
+
+@Composable
+fun CartScreen(
+    nav: NavHostController,
+    vm: CartViewModel = viewModel(),
+) {
+    val cartItems by vm.items.collectAsState()
+    val checkoutQr by vm.checkoutQr.collectAsState()
+    val aiInsight by vm.aiInsight.collectAsState()
+    val aiAnswer by vm.aiAnswer.collectAsState()
+    val aiLoading by vm.aiLoading.collectAsState()
+    val message by vm.message.collectAsState()
+    val snackbar = remember { SnackbarHostState() }
+    var query by remember { mutableStateOf("") }
+    var secondsLeft by remember { mutableIntStateOf(PAYMENT_FALLBACK_SECONDS) }
+    val messageText = message?.asString()
