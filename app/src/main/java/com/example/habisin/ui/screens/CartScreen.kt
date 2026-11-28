@@ -107,3 +107,39 @@ fun CartScreen(
                 HabisinBottomBar {
                     HabisinButton(
                         text = stringResource(R.string.cart_pay_qr),
+                        onClick = { vm.checkout() },
+                    )
+                }
+            }
+        },
+    ) { pad ->
+        Column(Modifier.fillMaxSize().padding(pad).padding(horizontal = dimensionResource(R.dimen.space_20))) {
+            HabisinSearchField(
+                value = query,
+                onValueChange = {
+                    query = it
+                    vm.load(it)
+                },
+                placeholder = stringResource(R.string.cart_search_hint),
+                modifier = Modifier.padding(top = dimensionResource(R.dimen.space_12)),
+            )
+            if (cartItems.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(stringResource(R.string.cart_empty), style = MaterialTheme.typography.titleMedium, color = HabisinColor.Muted)
+                }
+            } else {
+                LazyColumn(
+                    Modifier.weight(1f).padding(top = dimensionResource(R.dimen.space_14)),
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_12)),
+                ) {
+                    item {
+                        CartAiCard(
+                            insight = aiInsight,
+                            answer = aiAnswer,
+                            loading = aiLoading,
+                            onAsk = { pertanyaan -> vm.tanyaAi(pertanyaan) },
+                        )
+                    }
+                    items(cartItems, key = { it.id }) { item ->
+                        val product = item.product
+                        Row(
