@@ -62,3 +62,19 @@ data class ChatProduct(
     val harga_diskon: Int,
     val stok: Int,
     val jenis_makanan: String? = null,
+)
+
+data class PriceAiRequest(
+    val nama: String,
+    val harga_normal: Int,
+    val batas_konsumsi: String? = null,
+)
+
+data class PriceAiResponse(
+    val harga_saran: Int,
+    val alasan: String,
+)
+
+data class DescriptionAiRequest(
+    val nama: String,
+    val jenis_makanan: String,
