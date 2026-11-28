@@ -445,44 +445,31 @@ Sisa pekerjaan di-commit bertahap satu kelompok per commit (bukan sekaligus), ag
 
 ### 15.5 Progress Mingguan (Weekly Progress)
 
-Bagian ini mencatat pekerjaan per minggu beserta commit yang mewakilinya, sehingga dosen dapat menelusuri progres langsung dari riwayat Git.
+Progress didokumentasikan dari riwayat commit git pada repositori ini.
 
-#### Minggu 1 (8 - 9 November 2026)
+#### Minggu 1 (8 - 24 November 2026)
 
-- [x] Setup proyek Android Studio dan `.gitignore` artefak build (`a708c5e`)
-- [x] `MainActivity` dan kerangka navigasi aplikasi (`651cde8`)
-
-#### Minggu 2 (15 November 2026)
-
-- [x] Dokumen SRS proyek Habisin (`4dff359`)
-- [x] `HabisinNavHost` dan definisi rute navigasi (`abe4817`)
-
-#### Minggu 3 (22 November 2026)
-
+- [x] Setup proyek Android Studio, Gradle, dan `.gitignore` artefak build (`a708c5e`, `c322a05`)
+- [x] `MainActivity` dan kerangka navigasi Compose (`651cde8`, `abe4817`)
+- [x] Dokumen SRS Habisin versi 1.0 (`4dff359`)
 - [x] `.gitignore` data lokal, log, dan berkas kredensial (`f07d1e7`)
-- [x] Konfigurasi Gradle, wrapper, manifest, `keepRules`, `proguard` (`c322a05`)
-- [x] README konfigurasi lokal dan akun demo (`1edd78b`)
+- [x] README konfigurasi lokal, akun demo, dan tunnel permanen (`1edd78b`, `2237555`)
+- [x] README ditulis ulang mengikuti struktur SRS (`f2f86a1`, `335ef91`)
+- [x] Pemisahan repositori mobile dan API (`760ab07`)
 
-#### Minggu 4 (23 November 2026)
+#### Minggu 2 (25 - 28 November 2026)
 
-- [x] README konfigurasi basis data dan tunnel permanen (`2237555`)
-- [x] README ditulis ulang mengikuti struktur SRS v1.0 (`f2f86a1`)
-- [x] README riwayat commit dan rencana commit bertahap (`335ef91`)
-
-#### Minggu 5 (24 November 2026) - dalam proses commit
-
-Pekerjaan berikut sudah selesai di mesin pengembang dan sedang di-commit bertahap satu per satu.
-
-- [ ] Tema: token warna, tipografi, `dimens.xml` (94 token), `strings.xml` (334 string), aset launcher
-- [ ] Lapisan data: model produk, repository, klien Retrofit, interceptor JWT, penanganan galat
-- [ ] API klien per fitur: auth, produk, toko, laporan, keranjang, pesanan, sosial, struk, AI
-- [ ] Penyimpanan sesi, berkas struk lokal, util format/teks/cache gambar
-- [ ] Komponen reusable: tombol, input, kartu, kartu produk, ikon
-- [ ] Navigasi bertipe (`Screen`, `Routes`, `HabisinNavHost`)
-- [ ] 10 ViewModel: auth, beranda, keranjang, pesanan, sosial, ulasan, struk, toko, penjual, AI
-- [ ] Layar pembeli: masuk/daftar, beranda, keranjang + dialog QR, pesanan, struk, favorit, ulasan, toko, profil
-- [ ] Layar penjual dan Habisin AI
-- [ ] Unit test dan instrumented test
+- [x] Klien layanan AI dan kontrak chat asisten (`5bd5408`, `517cab3`)
+- [x] Endpoint saran harga, deskripsi produk, dan ringkasan penjualan (`550fa1e`, `0400ee4`, `f874670`)
+- [x] Pencarian cerdas, dampak penjual, dan tanya produk (`05fc967`, `bebd72f`)
+- [x] Model permintaan, ringkasan, dan jawaban AI keranjang (`2a09477`, `465a558`, `9964cfe`)
+- [x] State keranjang, pesan, QR, dan AI pada ViewModel (`ee14efb`, `feab436`, `d71b7b5`)
+- [x] Deteksi isi keranjang dan aksi tanya AI (`6cd24f2`, `db07e8a`, `766cf65`)
+- [x] Checkout, pemantauan status bayar, dan pemuatan daftar (`bb3b190`, `7fd0e82`, `5e1c1f2`)
+- [x] Tambah, ubah, dan hapus item keranjang (`52a1dcb`)
+- [x] Layar keranjang: impor, state, snackbar, dan hitung mundur QR (`0d28bfe`, `620bd2a`, `05115e4`)
+- [x] Scaffold, top bar, daftar item, dan kartu AI keranjang (`9591c55`, `5356e4d`, `adc7497`)
+- [x] Ringkasan total, dialog QR, dan jawaban AI keranjang (`80daf93`, `9c95e14`, `874c253`, `78e7cd8`)
 
 ## 16. Lisensi dan Atribusi
 
