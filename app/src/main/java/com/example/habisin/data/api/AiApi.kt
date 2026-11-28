@@ -143,3 +143,19 @@ data class CartAiRingkasan(
     val total: Int,
     val hemat: Int,
     val segera_kedaluwarsa: List<String> = emptyList(),
+)
+
+data class CartInsightResponse(
+    val item: List<CartAiItem> = emptyList(),
+    val ringkasan: CartAiRingkasan,
+    val dari_gemini: Boolean = false,
+    val model_tersedia: Boolean = false,
+)
+
+data class CartAnswerResponse(
+    val pertanyaan: String = "",
+    val jawaban: String,
+    val item: List<CartAiItem> = emptyList(),
+    val ringkasan: CartAiRingkasan? = null,
+    val dari_gemini: Boolean = false,
+)
