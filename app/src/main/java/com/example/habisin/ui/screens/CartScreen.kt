@@ -251,3 +251,40 @@ fun CartScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_8))) {
                     if (bitmap != null) {
                         Image(
+                            bitmap,
+                            stringResource(R.string.payment_qr_alt),
+                            Modifier.size(dimensionResource(R.dimen.qr_image_size)),
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.payment_qr_total, rupiah(qr.total_harga)),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = HabisinColor.Green,
+                    )
+                    Text(stringResource(R.string.payment_time_left, secondsLeft), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.payment_qr_scan_other_phone), style = MaterialTheme.typography.bodySmall, color = HabisinColor.Muted)
+                    Text(stringResource(R.string.payment_qr_code, qr.payment_code), style = MaterialTheme.typography.labelMedium, color = HabisinColor.Muted)
+                    Text(qr.url, style = MaterialTheme.typography.labelSmall, color = HabisinColor.Faint)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { vm.refreshQr() }) { Text(stringResource(R.string.payment_qr_new)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { vm.clearCheckout() }) { Text(stringResource(R.string.close)) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun CartAiCard(
+    insight: com.example.habisin.data.api.CartInsightResponse?,
+    answer: String?,
+    loading: Boolean,
+    onAsk: (String) -> Unit,
+) {
+    var pertanyaan by remember { mutableStateOf("") }
+    Column(
+        Modifier
+            .fillMaxWidth()
