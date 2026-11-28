@@ -111,3 +111,19 @@ data class AskProductRequest(
     val produk_id: Long,
     val pertanyaan: String,
 )
+
+data class AskProductResponse(
+    val produk_id: Long,
+    val sisa_waktu: String,
+    val jawaban: String,
+    val catatan: String,
+)
+
+data class CartQuestionRequest(
+    val pertanyaan: String,
+)
+
+data class CartAiItem(
+    val cart_id: Long,
+    val produk_id: Long,
+    val nama: String,
