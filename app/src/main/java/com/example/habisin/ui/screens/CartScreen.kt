@@ -215,3 +215,39 @@ fun CartScreen(
                                 Text(stringResource(R.string.cart_total), style = MaterialTheme.typography.titleMedium)
                                 Text(rupiah(total), style = MaterialTheme.typography.titleLarge, color = HabisinColor.Green)
                             }
+                        }
+                    }
+                    item {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(HabisinColor.GreenSoft, RoundedCornerShape(dimensionResource(R.dimen.radius_14)))
+                                .padding(horizontal = dimensionResource(R.dimen.space_14), vertical = dimensionResource(R.dimen.space_12)),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_10)),
+                        ) {
+                            HabisinIcon(HabisinIconKind.Clock, size = dimensionResource(R.dimen.icon_18), color = HabisinColor.Green)
+                            Text(
+                                stringResource(R.string.cart_saved_note),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = HabisinColor.Green,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    checkoutQr?.let { qr ->
+        val bytes = remember(qr.gambar_qr) { Base64.decode(qr.gambar_qr.substringAfter(","), Base64.DEFAULT) }
+        val bitmap = remember(qr.gambar_qr) {
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+        }
+        AlertDialog(
+            onDismissRequest = { vm.clearCheckout() },
+            title = { Text(stringResource(R.string.payment_qr_title)) },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_8))) {
+                    if (bitmap != null) {
+                        Image(
