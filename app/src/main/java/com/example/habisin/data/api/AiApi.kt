@@ -78,3 +78,20 @@ data class PriceAiResponse(
 data class DescriptionAiRequest(
     val nama: String,
     val jenis_makanan: String,
+)
+
+data class DescriptionAiResponse(
+    val deskripsi: String,
+)
+
+data class SalesSummaryResponse(
+    val jumlah_pesanan: Int,
+    val jumlah_porsi: Int,
+    val pendapatan: Int,
+    val ringkasan: String,
+)
+
+data class SmartSearchRequest(
+    val pertanyaan: String,
+)
+
