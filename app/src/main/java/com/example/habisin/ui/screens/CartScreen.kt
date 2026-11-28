@@ -324,3 +324,39 @@ private fun CartAiCard(
                     color = HabisinColor.AmberInk,
                 )
             }
+        }
+        HabisinTextField(
+            value = pertanyaan,
+            onValueChange = { pertanyaan = it },
+            placeholder = stringResource(R.string.cart_ai_hint),
+        )
+        HabisinButton(
+            text = if (loading) stringResource(R.string.cart_ai_thinking) else stringResource(R.string.cart_ai_ask),
+            onClick = {
+                onAsk(pertanyaan)
+                pertanyaan = ""
+            },
+            enabled = !loading,
+            outlined = true,
+        )
+        answer?.let { teks ->
+            Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_4))) {
+                Text(
+                    stringResource(R.string.cart_ai_answer),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = HabisinColor.Muted,
+                )
+                Text(teks, style = MaterialTheme.typography.bodyMedium, color = HabisinColor.Ink)
+            }
+        }
+    }
+}
+
+/** Nilai cadangan bila server tidak mengirim masa berlaku kode QR. */
+private const val PAYMENT_FALLBACK_SECONDS = 60
+
+/** Selang pembaruan hitung mundur QR dalam milidetik. */
+private const val COUNTDOWN_TICK_MILLIS = 1_000L
+
+/** Setiap berapa detik status sesi checkout ditanyakan ke server. */
+private const val STATUS_POLL_INTERVAL_SECONDS = 3
