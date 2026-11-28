@@ -106,3 +106,19 @@ class CartViewModel : ViewModel() {
                 }
             }
         }
+
+    fun clearCheckout() {
+        _checkoutQr.value = null
+    }
+
+    fun load(query: String = "") =
+        viewModelScope.launch {
+            runCatching { ApiClient.cartApi.list(query) }
+                .onSuccess {
+                    _items.value = it
+                    // Jawaban lama tidak relevan lagi setelah isi keranjang berubah.
+                    clearAiAnswer()
+                    loadAiInsight()
+                }.onFailure { _message.value = ApiError.message(it, R.string.msg_cart_failed) }
+        }
+
