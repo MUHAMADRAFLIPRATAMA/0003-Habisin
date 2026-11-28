@@ -44,3 +44,19 @@ class CartViewModel : ViewModel() {
             val isi = pertanyaan.trim()
             if (isi.isBlank()) return@launch
             _aiLoading.value = true
+            runCatching { ApiClient.aiApi.askCart(CartQuestionRequest(isi)) }
+                .onSuccess { jawab ->
+                    _aiAnswer.value = jawab.jawaban
+                    jawab.ringkasan?.let { ringkas ->
+                        _aiInsight.value =
+                            CartInsightResponse(
+                                item = jawab.item,
+                                ringkasan = ringkas,
+                                dari_gemini = jawab.dari_gemini,
+                                // Ikuti status model dari server, jangan dipaksa true.
+                                model_tersedia = jawab.dari_gemini || _aiInsight.value?.model_tersedia == true,
+                            )
+                    }
+                }.onFailure { _message.value = ApiError.message(it, R.string.msg_cart_ai_failed) }
+            _aiLoading.value = false
+        }
