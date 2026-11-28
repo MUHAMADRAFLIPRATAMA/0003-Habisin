@@ -143,3 +143,39 @@ fun CartScreen(
                     items(cartItems, key = { it.id }) { item ->
                         val product = item.product
                         Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(dimensionResource(R.dimen.radius_16)))
+                                .border(dimensionResource(R.dimen.stroke_1), HabisinColor.Border, RoundedCornerShape(dimensionResource(R.dimen.radius_16)))
+                                .padding(dimensionResource(R.dimen.space_12)),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_12)),
+                        ) {
+                            Box(
+                                Modifier
+                                    .size(dimensionResource(R.dimen.empty_state_icon_box))
+                                    .background(HabisinColor.GreenSoft, RoundedCornerShape(dimensionResource(R.dimen.radius_12))),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                HabisinIcon(HabisinIconKind.Image, size = dimensionResource(R.dimen.icon_24), color = HabisinColor.Mint)
+                            }
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_2))) {
+                                Text(
+                                    product?.name ?: stringResource(R.string.cart_product_fallback),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = HabisinColor.Ink,
+                                )
+                                Text(
+                                    product?.shop.orEmpty(),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = HabisinColor.Muted,
+                                )
+                                Text(
+                                    rupiah(product?.discountPrice ?: 0),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = HabisinColor.Green,
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_6))) {
+                                Box(
+                                    Modifier.size(dimensionResource(R.dimen.icon_24)).clickable { vm.remove(item.id) },
