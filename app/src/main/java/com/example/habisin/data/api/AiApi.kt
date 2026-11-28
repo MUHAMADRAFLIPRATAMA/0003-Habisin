@@ -30,3 +30,19 @@ interface AiApi {
 
     @GET("ai/dampakku")
     suspend fun myImpact(): ImpactResponse
+
+    @POST("ai/tanya-produk")
+    suspend fun askProduct(
+        @Body body: AskProductRequest,
+    ): AskProductResponse
+
+    @GET("ai/keranjang")
+    suspend fun cartInsight(): CartInsightResponse
+
+    @POST("ai/tanya-keranjang")
+    suspend fun askCart(
+        @Body body: CartQuestionRequest,
+    ): CartAnswerResponse
+}
+
+data class ChatRequest(
