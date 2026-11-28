@@ -46,3 +46,19 @@ interface AiApi {
 }
 
 data class ChatRequest(
+    val pesan: String,
+)
+
+data class ChatResponse(
+    val jawaban: String,
+    val dari_gemini: Boolean,
+    val produk: List<ChatProduct> = emptyList(),
+)
+
+data class ChatProduct(
+    val id: Long,
+    val nama: String,
+    val deskripsi: String? = null,
+    val harga_diskon: Int,
+    val stok: Int,
+    val jenis_makanan: String? = null,
