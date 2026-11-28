@@ -14,3 +14,19 @@ interface AiApi {
     suspend fun suggestPrice(
         @Body body: PriceAiRequest,
     ): PriceAiResponse
+
+    @POST("ai/deskripsi-produk")
+    suspend fun productDescription(
+        @Body body: DescriptionAiRequest,
+    ): DescriptionAiResponse
+
+    @GET("ai/ringkasan-penjualan")
+    suspend fun salesSummary(): SalesSummaryResponse
+
+    @POST("ai/cari")
+    suspend fun smartSearch(
+        @Body body: SmartSearchRequest,
+    ): SmartSearchResponse
+
+    @GET("ai/dampakku")
+    suspend fun myImpact(): ImpactResponse
