@@ -70,3 +70,40 @@ fun CartScreen(
     var query by remember { mutableStateOf("") }
     var secondsLeft by remember { mutableIntStateOf(PAYMENT_FALLBACK_SECONDS) }
     val messageText = message?.asString()
+    LaunchedEffect(messageText) {
+        messageText?.let {
+            snackbar.showSnackbar(it)
+            vm.clearMessage()
+        }
+    }
+    // Hitung mundur mengikuti kode QR yang sedang tampil; saat habis, minta QR baru
+    // (kode lama otomatis batal di backend sehingga tidak ada pembayaran ganda).
+    LaunchedEffect(checkoutQr?.session_id, checkoutQr?.payment_code) {
+        val qr = checkoutQr ?: return@LaunchedEffect
+        secondsLeft = qr.detik_berlaku.takeIf { it > 0 } ?: PAYMENT_FALLBACK_SECONDS
+        while (secondsLeft > 0) {
+            delay(COUNTDOWN_TICK_MILLIS)
+            secondsLeft--
+            // Status tidak perlu ditanyakan tiap detik; cukup berkala agar hemat jaringan.
+            if (secondsLeft % STATUS_POLL_INTERVAL_SECONDS == 0) vm.pollCheckoutStatus()
+        }
+        if (vm.checkoutQr.value != null) vm.refreshQr()
+    }
+    LaunchedEffect(Unit) { vm.load() }
+    val total = cartItems.sumOf { (it.product?.discountPrice ?: 0) * it.jumlah }
+    val totalItem = cartItems.sumOf { it.jumlah }
+
+    Scaffold(
+        containerColor = HabisinColor.Cream,
+        snackbarHost = { SnackbarHost(snackbar) },
+        topBar = {
+            HabisinTopBar(
+                title = stringResource(R.string.cart_title),
+                onBack = { nav.popBackStack() },
+            )
+        },
+        bottomBar = {
+            if (cartItems.isNotEmpty()) {
+                HabisinBottomBar {
+                    HabisinButton(
+                        text = stringResource(R.string.cart_pay_qr),
