@@ -288,3 +288,39 @@ private fun CartAiCard(
     Column(
         Modifier
             .fillMaxWidth()
+            .background(HabisinColor.GreenTint, RoundedCornerShape(dimensionResource(R.dimen.radius_18)))
+            .border(
+                dimensionResource(R.dimen.stroke_1),
+                HabisinColor.Border,
+                RoundedCornerShape(dimensionResource(R.dimen.radius_18)),
+            )
+            .padding(dimensionResource(R.dimen.space_16)),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_10)),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.space_8)),
+        ) {
+            HabisinIcon(HabisinIconKind.Spark, size = dimensionResource(R.dimen.icon_20), color = HabisinColor.Green)
+            Column {
+                Text(stringResource(R.string.cart_ai_title), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(R.string.cart_ai_subtitle),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = HabisinColor.Muted,
+                )
+            }
+        }
+        insight?.ringkasan?.let { ringkasan ->
+            Text(
+                stringResource(R.string.cart_ai_detected, ringkasan.jumlah_item, rupiah(ringkasan.hemat)),
+                style = MaterialTheme.typography.bodySmall,
+                color = HabisinColor.Ink,
+            )
+            if (ringkasan.segera_kedaluwarsa.isNotEmpty()) {
+                Text(
+                    stringResource(R.string.cart_ai_expiring, ringkasan.segera_kedaluwarsa.joinToString(stringResource(R.string.list_separator))),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = HabisinColor.AmberInk,
+                )
+            }
