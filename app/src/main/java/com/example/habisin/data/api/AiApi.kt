@@ -95,3 +95,19 @@ data class SmartSearchRequest(
     val pertanyaan: String,
 )
 
+data class SmartSearchResponse(
+    val kata_kunci: String,
+    val produk: List<com.example.habisin.data.model.Product>,
+)
+
+data class ImpactResponse(
+    val pesanan_selesai: Int,
+    val porsi_terselamatkan: Int,
+    val total_belanja: Int,
+    val ringkasan: String,
+)
+
+data class AskProductRequest(
+    val produk_id: Long,
+    val pertanyaan: String,
+)
