@@ -122,3 +122,19 @@ class CartViewModel : ViewModel() {
                 }.onFailure { _message.value = ApiError.message(it, R.string.msg_cart_failed) }
         }
 
+    fun add(
+        productId: Long,
+        quantity: Int = 1,
+    ) = viewModelScope.launch {
+        runCatching { ApiClient.cartApi.add(CartRequest(productId, quantity)) }
+            .onSuccess {
+                _message.value = UiText.Res(R.string.msg_cart_added)
+            }.onFailure { _message.value = ApiError.message(it, R.string.msg_cart_add_failed) }
+    }
+
+    fun update(
+        id: Long,
+        quantity: Int,
+    ) = viewModelScope.launch {
+        runCatching { ApiClient.cartApi.update(id, CartUpdateRequest(quantity)) }
+            .onSuccess { load() }
