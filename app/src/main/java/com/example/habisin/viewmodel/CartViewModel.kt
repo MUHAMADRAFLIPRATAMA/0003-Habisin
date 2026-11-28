@@ -91,3 +91,18 @@ class CartViewModel : ViewModel() {
         viewModelScope.launch {
             val id = _checkoutQr.value?.session_id ?: return@launch
             runCatching { ApiClient.cartApi.refreshCheckout(id) }
+                .onSuccess { _checkoutQr.value = it }
+                .onFailure { _message.value = ApiError.message(it, R.string.msg_qr_refresh_failed) }
+        }
+
+    fun pollCheckoutStatus() =
+        viewModelScope.launch {
+            val id = _checkoutQr.value?.session_id ?: return@launch
+            runCatching { ApiClient.cartApi.checkoutStatus(id) }.onSuccess {
+                if (it.status == STATUS_LUNAS) {
+                    _checkoutQr.value = null
+                    _message.value = UiText.Res(R.string.msg_payment_success)
+                    load()
+                }
+            }
+        }
